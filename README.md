@@ -1,4 +1,4 @@
-## How to build Petalinux-v2025.2 Scarthgap images for UEI Zynq
+## How to build UEI Petalinux-v2026.1 Scarthgap images for UEI Zynq
 
 ### System Requirement:
    1. Ubuntu 20.04 / 22.04 / 24.04 / 24.10
