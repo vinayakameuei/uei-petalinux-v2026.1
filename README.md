@@ -13,13 +13,13 @@
 
       `$ sudo apt-get install gcc xterm autoconf libtool texinfo zlib1g-dev gcc-multilib build-essential ncurses-dev libncurses5`
 
-   3. Download PetaLinux 2025.2 Installer
-       https://www.xilinx.com/member/forms/download/xef.html?filename=petalinux-v2025.2-11160223-installer.run
+   3. Download PetaLinux 2026.1 Installer
+       https://www.xilinx.com/member/forms/download/xef.html?filename=petalinux-v2026.1-06061130-installer.run
 
 ### Build Steps:
 
    1. Install
-     `$ ./petalinux-v2025.2-11160223-installer.run --dir petalinux-zynqmp --platform "aarch64"`
+     `$ ./petalinux-v2026.1-06061130-installer.run --dir petalinux-zynqmp --platform "aarch64"`
 
    2. `$ source settings.sh`
 
@@ -27,13 +27,13 @@
 
    4. Enter uei-zynqmp folder and Clone this repository.
 
-      `$ git clone -b master https://github.com/UEI-AMETEK/petalinux-v2025.2.git`
+      `$ git clone -b master https://github.com/UEI-AMETEK//uei-petalinux-v2026.1.git`
 
    5. Rename folder
 
       `$ rm -rf project-spec/`
 
-      `$ mv petalinux-v2025.2/ project-spec/`
+      `$ mv uei-petalinux-v2026.1/ project-spec/`
 
    7. Use 4EG XSA as base platform build.
 
@@ -90,7 +90,7 @@ SRC_URI = "\
 
 Run `$ bitbake swupdate-qspi` or `petalinux-build -c swupdate-qspi` from your petalinux build directory
 
-Output will be created inside: `build/tmp/deploy/images/zu4ev/swupdate-qspi-zu4eg.rootfs.swu`
+Output will be created inside: `build/tmp/deploy/images/zu4eg/swupdate-qspi-zu4eg.rootfs.swu`
 
 ### SWU package creation of RootFS image:
 
@@ -98,7 +98,7 @@ Make sure you are in same build machine for which you are creating SWU package. 
 
 Run `$ bitbake swupdate-image` or `petalinux-build -c swupdate-image` from your petalinux build directory
 
-Output will be created inside: `build/tmp/deploy/images/zu4ev/swupdate-image-zu4ev.rootfs.swu`
+Output will be created inside: `build/tmp/deploy/images/zu4eg/swupdate-image-zu4eg.rootfs.swu`
 
 
 ### SWU package installation steps:
