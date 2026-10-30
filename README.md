@@ -27,7 +27,7 @@
 
    4. Enter uei-zynqmp folder and Clone this repository.
 
-      `$ git clone -b master https://github.com/UEI-AMETEK//uei-petalinux-v2026.1.git`
+      `$ git clone -b master https://github.com/UEI-AMETEK/uei-petalinux-v2026.1.git`
 
    5. Rename folder
 
