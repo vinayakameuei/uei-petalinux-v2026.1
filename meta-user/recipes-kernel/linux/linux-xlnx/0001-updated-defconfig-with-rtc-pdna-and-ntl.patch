@@ -1,0 +1,37 @@
+From 7818632d97c9024f497963e2e14b1e0dd7f2a20a Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 26 Sep 2025 07:14:26 +0000
+Subject: [PATCH] updated defconfig with rtc pdna and ntl
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm64/configs/xilinx_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/arm64/configs/xilinx_defconfig b/arch/arm64/configs/xilinx_defconfig
+index 409d24279bf5..70dac2993d32 100644
+--- a/arch/arm64/configs/xilinx_defconfig
++++ b/arch/arm64/configs/xilinx_defconfig
+@@ -513,6 +513,7 @@ CONFIG_EDAC_SYNOPSYS=y
+ CONFIG_EDAC_XILINX_XILSEM=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_DRV_ZYNQMP=y
++CONFIG_RTC_DRV_UEI_PDNA=y
+ CONFIG_DMADEVICES=y
+ CONFIG_XILINX_DMA=y
+ CONFIG_XILINX_ZYNQMP_DMA=y
+@@ -527,6 +528,8 @@ CONFIG_UIO_XILINX_AI_ENGINE=m
+ CONFIG_VFIO=y
+ CONFIG_VFIO_CDX=y
+ CONFIG_STAGING=y
++CONFIG_NTL=y
++CONFIG_NTL_PHC=y
+ CONFIG_XILINX_FCLK=y
+ CONFIG_XLNX_SYNC=y
+ CONFIG_SERIAL_UARTLITE_RS485=y
+-- 
+2.44.1
+

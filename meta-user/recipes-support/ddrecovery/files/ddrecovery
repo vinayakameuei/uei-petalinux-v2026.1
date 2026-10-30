@@ -1,0 +1,42 @@
+#!/bin/sh
+
+set -e
+
+DEVICE=/dev/mmcblk0
+PARTITION=/dev/mmcblk0p3
+IMAGE=uei-image-recovery-zynq-@MACHINE@.ext4
+
+echo "Checking image..."
+[ -f "$IMAGE" ] || {
+    echo "ERROR: $IMAGE not found"
+    exit 1
+}
+
+echo "Checking partition..."
+
+if [ ! -b "$PARTITION" ]; then
+    echo "Creating 620MiB recovery partition..."
+
+    echo ',620M,L' | sfdisk --force --no-reread --append "$DEVICE"
+
+    sync
+
+    # Reload partition table
+    partx -u "$DEVICE"
+
+    sleep 2
+
+    lsblk "$DEVICE"
+fi
+
+echo "Writing recovery image..."
+
+dd if="$IMAGE" of="$PARTITION" bs=4M conv=fsync status=progress
+
+sync
+
+echo "Checking filesystem..."
+fsck.ext4 -fn "$PARTITION" || true
+
+echo "Recovery image written successfully."
+

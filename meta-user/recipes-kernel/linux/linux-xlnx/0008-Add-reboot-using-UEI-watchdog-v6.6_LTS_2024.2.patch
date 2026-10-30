@@ -1,0 +1,62 @@
+From 2d4b317bfd3102fb48c8bd1850110b017fac07fa Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 26 Sep 2025 06:10:49 +0000
+Subject: [PATCH] Add reboot using UEI watchdog v6.6_LTS_2024.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm64/kernel/process.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
+index 0fcc4eb1a7ab..6af86df82e16 100644
+--- a/arch/arm64/kernel/process.c
++++ b/arch/arm64/kernel/process.c
+@@ -42,6 +42,10 @@
+ #include <linux/prctl.h>
+ #include <linux/stacktrace.h>
+ 
++#include <linux/of_platform.h>
++#include <linux/of_irq.h>
++#include <linux/of_address.h>
++
+ #include <asm/alternative.h>
+ #include <asm/compat.h>
+ #include <asm/cpufeature.h>
+@@ -125,6 +129,30 @@ void machine_power_off(void)
+  */
+ void machine_restart(char *cmd)
+ {
++       struct device_node *pdna_cs2_devn = NULL;
++       void __iomem * pdna_cs2_base = NULL;
++       int i;
++       static int pos=0;
++       char cursor[4]={'/','-','\\','|'};
++
++      pdna_cs2_devn = of_find_node_by_name(NULL, "cs2");
++       if(NULL == pdna_cs2_devn){
++               printk("machine_restart: Error, of_find_node_by_name, CS2 node not found\n");
++       }
++       pdna_cs2_base = of_iomap(pdna_cs2_devn, 0);
++       if (!pdna_cs2_base) {
++               printk("machine_restart: Error ioremap CS2\n");
++       }
++       pr_emerg("Restarting Zynqmp...\n");
++       writel( 0x20, pdna_cs2_base + 0xD2024 );
++       readl( pdna_cs2_base + 0xD2024 );
++       writel( 0x8000, pdna_cs2_base + 0xD2000 );
++       for (;;) {
++               pr_emerg("%c\b", cursor[pos]);
++               pos = (pos+1) % 4;
++               msleep(100);
++       }
++
+ 	/* Disable interrupts first */
+ 	local_irq_disable();
+ 	smp_send_stop();
+-- 
+2.44.1
+

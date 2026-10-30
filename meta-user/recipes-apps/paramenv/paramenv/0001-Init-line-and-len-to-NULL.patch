@@ -1,0 +1,31 @@
+From bf8ac1a58daf48b91c641cb56f2dc732e21dcb75 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Wed, 5 Nov 2025 15:38:08 +0000
+Subject: [PATCH] Init line and len to NULL
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ paramenv.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/paramenv.c b/paramenv.c
+index 7090028..1f15a2b 100644
+--- a/paramenv.c
++++ b/paramenv.c
+@@ -54,8 +54,8 @@ static inline rm_newline(char *s, int size)
+ int set_option_zynq(PARAM* pram) {
+     int ret = 0;
+     FILE* fr = NULL;
+-    char* line;
+-    size_t len;
++    char* line = NULL;
++    size_t len = 0;
+     ssize_t read;
+     int optionFound = 0;
+ 
+-- 
+2.44.1
+

@@ -1,0 +1,345 @@
+From 569ea0629a8e7e47f1629e712fc63088636b7edd Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 26 Sep 2025 05:36:21 +0000
+Subject: [PATCH] Add rtc-uei-pdna driver support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ drivers/rtc/Kconfig        |  12 ++
+ drivers/rtc/Makefile       |   1 +
+ drivers/rtc/rtc-uei-pdna.c | 287 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 300 insertions(+)
+ create mode 100644 drivers/rtc/rtc-uei-pdna.c
+
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 92f46a6312c2..a34981a1ec35 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -1309,6 +1309,18 @@ config RTC_DRV_ZYNQMP
+ 	  If you say yes here you get support for the RTC controller found on
+ 	  Xilinx Zynq Ultrascale+ MPSoC.
+ 
++config RTC_DRV_UEI_PDNA
++       tristate "UEI PDNA RTC DS1390 Driver support"
++       select REGMAP_MMIO
++       depends on HAS_IOMEM
++       depends on OF
++       help
++          If you say yes here you get support for the UEIPAC PDNA
++          RTC module.
++
++          This driver can also be built as a module, if so, the module
++          will be called "rtc-pdna".
++
+ config RTC_DRV_CROS_EC
+ 	tristate "Chrome OS EC RTC driver"
+ 	depends on CROS_EC
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index fd209883ee2e..83c2e9f1d4e6 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -184,3 +184,4 @@ obj-$(CONFIG_RTC_DRV_WM8350)	+= rtc-wm8350.o
+ obj-$(CONFIG_RTC_DRV_X1205)	+= rtc-x1205.o
+ obj-$(CONFIG_RTC_DRV_XGENE)	+= rtc-xgene.o
+ obj-$(CONFIG_RTC_DRV_ZYNQMP)	+= rtc-zynqmp.o
++obj-$(CONFIG_RTC_DRV_UEI_PDNA) += rtc-uei-pdna.o
+diff --git a/drivers/rtc/rtc-uei-pdna.c b/drivers/rtc/rtc-uei-pdna.c
+new file mode 100644
+index 000000000000..642ccb95349a
+--- /dev/null
++++ b/drivers/rtc/rtc-uei-pdna.c
+@@ -0,0 +1,287 @@
++/*
++ * rtc-uei-pdna.c -- driver for the UEIPAC RTC used with UEIPDNASX6
++ *
++ * United Electronic Industries UEIPAC board support
++ *
++ * Maintainer : Scott Ikenaga <sikenaga@ueidaq.com>
++ *
++ * Based on the UEIPAC 8347 board support by:
++ *    Frederic Villeneuve <fvilleneuve@ueidaq.com>
++ *
++ * Copyright (C) United Electronic Industries, Inc. 2019. All rights reserved.
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
++#include <linux/bcd.h>
++#include <linux/slab.h>
++#include <linux/of.h>
++#include <linux/mfd/syscon.h>
++#include <linux/regmap.h>
++
++/* PDNA Layer Registers */
++#define DQL_CLI_LSR            (0x0000)   // R layer status register
++#define DQL_CLI_LCR            (0x0000)   // W layer control register
++#define DQL_CLI_ISDR   (0x0004)   // R isolated side RX data register
++#define DQL_CLI_ISTR   (0x0004)   // W isolated side TX transmit register
++#define DQL_CLI_LID            (0x0008)   // R layer identification {u16 BOM,u16 Model}
++#define DQL_CLI_RTC            (0xD0000)  // RTC chip located on power layer
++
++#define DQL_LSR_IDR            (1UL<<27)  // IS-data ready
++#define DQL_LSR_IBT            (1UL<<26)  // IS-interface TX busy
++#define DQL_LSR_IBR            (1UL<<25)  // IS-interface RX busy
++
++#define DQL_LCR_LIOE   (1UL<<31)  // Layer I/O enable - controls iso_cmd line
++#define DQL_LCR_LRE            (1UL<<30)  // Layer reset enable
++
++#define DQ_L2_DNRP_STS 0x2000     // R ADC/Fan status
++#define DQ_L2_DNRP_CFG 0x2000     // W ADC/Fan configuration
++#define DQ_L2_DNRP_LED 0x2004     // R/W LED
++
++/* DS1390 Registers */
++#define DS1390_SUBSECONDS              0x00    // <0.1s><0.01s> [aaaabbbb] BCD
++#define DS1390_SECONDS                 0x01    // <10s><1s>     [0aaabbbb] BCD
++#define DS1390_MINUTES                 0x02    // <10m><1m>     [0aaabbbb] BCD
++#define DS1390_HOURS                   0x03    // <12/24><AM/PM><10h><1h> [0abchhhh] BCD
++#define DS1390_DAY                             0x04    // <1-7> [00000ddd] BCD
++#define DS1390_DATE                            0x05    // <10d><1d>    [00ddeeee] BCD
++#define DS1390_MONTH                   0x06    // <c><10m><1m> [c00tmmmm] BCD
++#define DS1390_YEAR                            0x07    // <10y><1y>    [yyyyzzzz] BCD
++#define DS1390_WRITE                   0x80    // write modifier
++
++#define DS1390_ALARM_100THS            0x08
++#define DS1390_ALARM_SECONDS   0x09
++#define DS1390_ALARM_MINUTES   0x0A
++#define DS1390_ALARM_HOURS             0x0B
++#define DS1390_ALARM_DAY_DATE  0x0C
++
++#define DS1390_CONTROL         0x0D    // control register
++#define DS1390_STATUS          0x0E    // control register
++#define DS1390_TRICKLE         0x0F    // trickle charger control
++
++#define DS1390_TRICKLE_CHARGER_ENABLE  0xA0
++#define DS1390_TRICKLE_CHARGER_250_OHM 0x01
++#define DS1390_TRICKLE_CHARGER_2K_OHM  0x02
++#define DS1390_TRICKLE_CHARGER_4K_OHM  0x03
++#define DS1390_TRICKLE_CHARGER_NO_DIODE        0x04
++#define DS1390_TRICKLE_CHARGER_DIODE   0x08
++
++struct pdna_rtc_data {
++       struct rtc_device *rtc;
++       struct regmap *regmap;
++       phys_addr_t pdnabase;
++};
++
++static unsigned char pdna_read_reg(struct device *dev, void __iomem *addr,
++                                  unsigned char reg)
++{
++       int i, val;
++       u32 data;
++
++       /* dev_info(dev, "%s: addr=%x reg=%x\n", __func__, addr, reg); */
++       if ((reg & 0x7f) > DS1390_TRICKLE)
++               return 0;
++
++       writel(((reg & 0x7f) << 8), addr + DQL_CLI_ISTR);
++       for (i = 0; i < 0x1ffff; i++) {
++               val = readl(addr + DQL_CLI_LSR);
++               if (val & DQL_LSR_IDR)
++                       break;
++       }
++       val = readl(addr + DQL_CLI_ISDR);
++
++       return (unsigned char)(val & 0xff);
++}
++
++static void pdna_write_reg(struct device *dev, void __iomem *addr,
++                          unsigned char reg, unsigned char val)
++{
++       int i;
++
++       /* dev_info(dev, "%s: addr=%x reg=%x val=%x\n", __func__, addr, reg, val); */
++       if ((reg & 0x7f) > DS1390_TRICKLE)
++               return;
++
++       writel((((reg & 0x7f) | DS1390_WRITE) << 8) | (val & 0xff),
++              addr + DQL_CLI_ISTR);
++       for (i = 0; i < 0x1ffff; i++) {
++               if (!(readl((addr + DQL_CLI_LSR)) & DQL_LSR_IBT))
++                       break;
++       }
++}
++
++
++/* The RTC chip is a DS-1390 located on the PDNA power layer
++ * It is accessed through the EIM bus on the SoloX.
++ */
++static int pdna_get_rtc_time(struct device *dev, struct rtc_time *tm)
++{
++       unsigned long cy, yy, mm, dd, dy, hh, mn, ss;
++       int ret = 0;
++       struct pdna_rtc_data *res = dev_get_drvdata(dev);
++       void __iomem *rtcctl = NULL;
++
++       rtcctl = ioremap(res->pdnabase, 0x16);
++       if (!rtcctl){
++               dev_err(dev, "Error while mapping RTC during %s\n",
++                       __func__);
++               ret = -ENXIO;
++               goto err_ioremap;
++       }
++
++       cy = (pdna_read_reg(dev, rtcctl, DS1390_MONTH) & 0x80) ? 0x20 : 0x19;
++       yy = pdna_read_reg(dev, rtcctl, DS1390_YEAR);
++       mm = pdna_read_reg(dev, rtcctl, DS1390_MONTH) & 0x1f;
++       dd = pdna_read_reg(dev, rtcctl, DS1390_DATE);
++       dy = pdna_read_reg(dev, rtcctl, DS1390_DAY) & 0xf;
++       hh = pdna_read_reg(dev, rtcctl, DS1390_HOURS);
++       mn = pdna_read_reg(dev, rtcctl, DS1390_MINUTES);
++       ss = pdna_read_reg(dev, rtcctl, DS1390_SECONDS);
++#if 0
++       printk("cy = %lx\n", cy);
++       printk("yy = %lx\n", yy);
++       printk("mm = %lx\n", mm);
++       printk("dd = %lx\n", dd);
++       printk("dy = %lx\n", dy);
++       printk("%lx:%lx:%lx %lx/%lx/%lx%lx %lx\n", hh, mn, ss, mm, dd, cy, yy, dy);
++#endif
++       cy = bcd2bin(cy);
++       yy = bcd2bin(yy);
++       mm = bcd2bin(mm);
++       dd = bcd2bin(dd);
++       dy = bcd2bin(dy);
++       hh = bcd2bin(hh);
++       mn = bcd2bin(mn);
++       ss = bcd2bin(ss);
++
++       tm->tm_year = (cy*100 + yy) - 1900;
++       tm->tm_mon = mm - 1;
++       tm->tm_mday = dd;
++       tm->tm_hour = hh;
++       tm->tm_min = mn;
++       tm->tm_sec = ss;
++
++       return rtc_valid_tm(tm);
++err_ioremap:
++       iounmap(rtcctl);
++       return ret;
++}
++
++static int pdna_set_rtc_time(struct device *dev, struct rtc_time *tm)
++{
++       int cy;
++       int ret = 0;
++       struct pdna_rtc_data *res = dev_get_drvdata(dev);
++       void __iomem *rtcctl = NULL;
++
++       rtcctl = ioremap(res->pdnabase, 0x16);
++       if (!rtcctl){
++               dev_err(dev, "Error while mapping RTC during %s\n", __func__);
++               ret = -ENXIO;
++               goto err_ioremap;
++       }
++
++       cy = (tm->tm_year + 1900)/100;
++       pdna_write_reg(dev, rtcctl, DS1390_YEAR, bin2bcd((tm->tm_year + 1900) - cy * 100));
++       pdna_write_reg(dev, rtcctl, DS1390_MONTH, ((cy == 20) ? 0x80 : 0) | bin2bcd(tm->tm_mon + 1));
++       pdna_write_reg(dev, rtcctl, DS1390_DATE, bin2bcd(tm->tm_mday));
++       pdna_write_reg(dev, rtcctl, DS1390_HOURS, bin2bcd(tm->tm_hour));
++       pdna_write_reg(dev, rtcctl, DS1390_MINUTES, bin2bcd(tm->tm_min));
++       pdna_write_reg(dev, rtcctl, DS1390_SECONDS, bin2bcd(tm->tm_sec));
++
++err_ioremap:
++       iounmap(rtcctl);
++       return ret;
++}
++
++static const struct regmap_config pdna_rtc_config = {
++       .reg_bits = 32,
++       .val_bits = 32,
++       .reg_stride = 4,
++};
++
++static const struct rtc_class_ops pdna_rtc_ops = {
++       .read_time = pdna_get_rtc_time,
++       .set_time = pdna_set_rtc_time,
++};
++
++static int pdna_rtc_probe(struct platform_device *pdev)
++{
++       struct pdna_rtc_data *data;
++       struct resource *regs;
++       int ret = 0;
++       void __iomem *rtcctl = NULL;
++
++       regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++        if (!regs)
++                return -ENXIO;
++       /*dev_info(&pdev->dev, "%s: %x %x\n", __func__, regs->start, resource_size(regs)); */
++
++       rtcctl = ioremap(regs->start, resource_size(regs));
++       if (!rtcctl){
++               dev_err(&pdev->dev, "Error while mapping RTC during %s\n", __func__);
++               return -ENXIO;
++       }
++       /* dev_info(&pdev->dev, "%s: rtcctl = %x\n", __func__, rtcctl); */
++
++       data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++       if (!data)
++               return -ENOMEM;
++
++
++       data->regmap = syscon_regmap_lookup_by_compatible("uei,pdna-rtc");
++       data->pdnabase = regs->start;
++       platform_set_drvdata(pdev, data);
++
++       /* enable GIGE power layer, that's where the DS1390 RTC chip is located */
++       writel(0, rtcctl + DQL_CLI_LCR);
++       writel(DQL_LCR_LIOE, rtcctl+ DQL_CLI_LCR);
++
++       /* shut down LEDs for now */
++       /* writel(0, rtcctl + DQ_L2_DNRP_LED); */
++
++       /* Configure DS1390 trickle charger, 2kOhm - no diode charge*/
++       pdna_write_reg(&pdev->dev, rtcctl, DS1390_TRICKLE, 0xA6);
++
++       iounmap(rtcctl);
++
++       data->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
++                                       &pdna_rtc_ops, THIS_MODULE);
++       if (IS_ERR(data->rtc)) {
++               ret = PTR_ERR(data->rtc);
++               dev_err(&pdev->dev, "failed to register rtc: %d\n", ret);
++               goto error_rtc_device_register;
++       }
++
++       dev_info(&pdev->dev, "%s done\n", __func__);
++error_rtc_device_register:
++       return ret;
++}
++
++
++static const struct of_device_id pdna_dt_ids[] = {
++       { .compatible = "uei,pdna-rtc", },
++       { /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, pdna_dt_ids);
++
++static struct platform_driver pdna_rtc_driver = {
++       .driver = {
++               .name   = "pdna-rtc",
++               .of_match_table = pdna_dt_ids,
++       },
++       .probe          = pdna_rtc_probe,
++};
++module_platform_driver(pdna_rtc_driver);
++
++MODULE_DESCRIPTION("UEI PDNA RTC DS1390 Driver");
++MODULE_AUTHOR("UEI, Inc.");
++MODULE_LICENSE("GPL v2");
+\ No newline at end of file
+-- 
+2.44.1
+

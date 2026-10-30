@@ -1,0 +1,11 @@
+#!/bin/bash
+
+#script to grab scaled CPU temp. Returns temp in degrees celsius
+
+scale=$( cat  /sys/bus/iio/devices/iio\:device0/in_temp0_ps_temp_scale )
+raw=$( cat /sys/bus/iio/devices/iio\:device0/in_temp0_ps_temp_raw )
+offset=$( cat /sys/bus/iio/devices/iio\:device0/in_temp0_ps_temp_offset )
+
+temp=$( bc -l <<< "($scale)*(${raw}+${offset})")
+temp=$(echo "scale=2; $temp/1000.0" | bc)
+echo $temp

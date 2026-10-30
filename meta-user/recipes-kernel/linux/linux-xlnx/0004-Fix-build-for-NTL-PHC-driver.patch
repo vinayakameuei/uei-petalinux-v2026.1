@@ -1,0 +1,71 @@
+From 0f0c3e2b2dc5cb6b3a02261737c5ed4a3a57cc01 Mon Sep 17 00:00:00 2001
+From: Alex Servadio <alex.servadio@ametek.com>
+Date: Thu, 26 Feb 2026 23:34:30 +0000
+Subject: [PATCH] Fix build for NTL PHC driver.
+
+ioremap_nocache has been removed repalce it with ioremap
+
+struct ptp_clock_info {
+...
+.adjfreq
+...
+};
+Was deprecated and has been removed. ifdef it out.
+Phase shold still be adjusted with .adjfine
+
+Fix warnings.
+---
+ drivers/staging/ntl/ntl_phc/ntl_phc.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/staging/ntl/ntl_phc/ntl_phc.c b/drivers/staging/ntl/ntl_phc/ntl_phc.c
+index 57218a8a15cf..6797fa26c8fe 100644
+--- a/drivers/staging/ntl/ntl_phc/ntl_phc.c
++++ b/drivers/staging/ntl/ntl_phc/ntl_phc.c
+@@ -32,7 +32,9 @@ static const struct ptp_clock_info ntl_phc_clock_info = {
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(4,10,0)
+     .adjfine                                        = ntl_phc_adjfine,
+ #endif
++#if LINUX_VERSION_CODE <= KERNEL_VERSION(6,2,0)
+     .adjfreq                                        = ntl_phc_adjfreq, // deprecated
++#endif
+     .adjtime                                        = ntl_phc_adjtime,
+     .gettime64                                      = ntl_phc_gettime,
+     .settime64                                      = ntl_phc_settime,
+@@ -484,7 +486,7 @@ static int ntl_phc_probe(struct platform_device *pdev)
+     struct resource* mem;
+     uint32_t reg_data;
+     int ret;
+-       unsigned long flags;
++    unsigned long flags;
+ 
+     NTL_PHC_DPRINTK(NTL_PHC_DEBUG_LEVEL, "%s:%s entering function\n", NTL_PHC_DRIVER_NAME, __FUNCTION__);
+ 
+@@ -521,7 +523,7 @@ static int ntl_phc_probe(struct platform_device *pdev)
+         goto err_platform_get_resource_failed;
+     }
+ 
+-    printk(KERN_ERR "%s ctrl_mem@0x%08X - 0x%08X\n", NTL_PHC_DRIVER_NAME, mem->start, (mem->start + NTL_PHC_REGSET_SIZE -1));
++    printk(KERN_ERR "%s %pR\n", NTL_PHC_DRIVER_NAME, mem);
+ 
+     // save physical address
+     phc->physical_ctrl_base = mem->start;
+@@ -535,7 +537,7 @@ static int ntl_phc_probe(struct platform_device *pdev)
+     }
+ 
+     // map memory to ioregion
+-    phc->ctrl_base = ioremap_nocache(phc->physical_ctrl_base, NTL_PHC_REGSET_SIZE);
++    phc->ctrl_base = ioremap(phc->physical_ctrl_base, NTL_PHC_REGSET_SIZE);
+     if (phc->ctrl_base == NULL)
+     {
+         NTL_PHC_DPRINTK(NTL_PHC_ERROR_LEVEL, "ioremap failed\n");
+@@ -686,4 +688,4 @@ module_exit(ntl_phc_exit);
+ /*****************************************************************************/
+ MODULE_AUTHOR(NTL_PHC_DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(NTL_PHC_DRIVER_DESC);
+-MODULE_LICENSE(NTL_PHC_DRIVER_LICENSE);
+\ No newline at end of file
++MODULE_LICENSE(NTL_PHC_DRIVER_LICENSE);
+-- 
+2.44.4
+

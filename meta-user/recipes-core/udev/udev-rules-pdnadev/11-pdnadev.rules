@@ -1,0 +1,2 @@
+# UEI pdnadev device
+KERNEL=="pdna",  MODE="0660"

@@ -1,0 +1,9 @@
+/dev/loop
+/dev/ram
+/dev/mtdblock
+/dev/md
+/dev/dm-*
+
+# Uncomment following lines to disable automount of device
+#/dev/sd*
+#/dev/mmcblk*

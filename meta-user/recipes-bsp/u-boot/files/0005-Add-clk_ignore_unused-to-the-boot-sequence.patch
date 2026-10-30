@@ -1,0 +1,48 @@
+From f3a58f459fb4aa048bf73f2631d9b3f4d52665cb Mon Sep 17 00:00:00 2001
+From: Alex Servadio <alex.servadio@ametek.com>
+Date: Thu, 12 Feb 2026 22:18:41 +0000
+Subject: [PATCH] Add clk_ignore_unused to the boot sequence. Remove redundant
+ "rw rootwait" in mmcargs.
+
+---
+ include/configs/xilinx_zynqmp.h | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/include/configs/xilinx_zynqmp.h b/include/configs/xilinx_zynqmp.h
+index de5677e2133..6ff4274ded0 100644
+--- a/include/configs/xilinx_zynqmp.h
++++ b/include/configs/xilinx_zynqmp.h
+@@ -193,8 +193,10 @@
+        "run_tftpb=tftpboot ${loadaddr} Image;tftpboot ${ramdisk_addr} rootfs.cpio.gz.u-boot;run boot_image\0"\
+        "tftp_boot_args=setenv bootargs ${quietargs} console=${console},${baudrate}\0"\
+        "tftp_boot_qspi=run tftp_boot_args;tftpboot ${loadaddr} ${image};tftpboot ${ramdisk_addr} rootfs.cpio.gz.u-boot;tftpboot ${fdt_addr} system.dtb;run boot_image\0"\
+-       "mmcargs=setenv bootargs ${quietargs} console=${console},${baudrate} root=${mmcroot} rw\0"\
+-       "mmcroot=/dev/mmcblk0p2 rootwait rw\0"\
++       "mmcargs=setenv bootargs ${quietargs} console=${console},${baudrate} root=${mmcroot} rootwait rw clk_ignore_unused \0"\
++       "mmcroot=/dev/mmcblk0p2\0"\
++       "mmcroot_main=/dev/mmcblk0p2\0"\
++       "mmcroot_recovery=/dev/mmcblk0p3\0"\
+        "mmcloadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0"\
+        "mmcloadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0"\
+        "mmcpart=1\0"\
+@@ -206,7 +206,7 @@
+        "get_qspi_usb=usb reset;fatload usb ${usbdev}:${usbpart} ${loadaddr} ${qspi_file}\0"\
+        "flash_qspi=sf probe;sf erase 0 ${uboot_part};sf write ${loadaddr} 0 ${filesize}\0"\
+        "supports_license=1\0"\
+-       "usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} rootwait rw\0"\
++       "usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} rootwait rw clk_ignore_unused \0"\
+        "usbboot=run usbargs;run usbloadimage;run usbloadfdt;booti ${loadaddr} - ${fdt_addr}\0"\
+        "usbdev=0\0"\
+        "usbloadfdt=fatload usb ${usbdev}:${usbpart} ${fdt_addr} ${fdt_file}\0"\
+@@ -221,7 +223,7 @@
+ #endif
+ 
+ #define CONFIG_BOOTCOMMAND \
+-       "usb reset; run mmcboot"
++       "usb reset; if usb storage; then setenv mmcroot ${mmcroot_recovery}; else setenv mmcroot ${mmcroot_main}; fi; run mmcboot"
+ 
+ #if defined(CONFIG_SPL_SPI_FLASH_SUPPORT)
+ # define CONFIG_SYS_SPI_KERNEL_OFFS    0x80000
+-- 
+2.44.4
+

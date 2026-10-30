@@ -1,0 +1,26 @@
+From 313a81cdcc9906d717b86a0ba65e7ac0869671eb Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Mon, 1 Jul 2024 15:43:54 -0500
+Subject: [PATCH] Update description in UEI profile
+
+---
+ products/openembedded/profiles/uei.profile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/products/openembedded/profiles/uei.profile b/products/openembedded/profiles/uei.profile
+index a55f4b2f75..2d59c44948 100644
+--- a/products/openembedded/profiles/uei.profile
++++ b/products/openembedded/profiles/uei.profile
+@@ -3,9 +3,9 @@ documentation_complete: true
+ title: 'UEI Security Profile for UEI Distros'
+ 
+ description: |-
+-    This profile is for use with UEI Distros content.
+-    The selected rules include expanded profile plus additional rules
+-    for UEI content.
++    This profile is for use with UEI Distros content. The selected rules
++    include the Openembedded expanded profile plus additional rules for
++    UEI content.
+ 
+ selections:
+     - file_owner_etc_passwd

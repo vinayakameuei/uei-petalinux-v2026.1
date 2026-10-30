@@ -1,0 +1,242 @@
+/include/ "system-conf.dtsi"
+
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/net/ti-dp83867.h>
+#include <dt-bindings/pinctrl/pinctrl-zynqmp.h>
+
+/ {
+    options {
+        u-boot {
+            // Mark the node for deletion
+            /delete-property/ bootscr-address;
+            /delete-property/ compatible;
+        };
+    };
+        refclk3:psgtr_dp_clock {
+                compatible = "fixed-clock";
+                #clock-cells = <0x00>;
+                clock-frequency = <27000000>;
+                };
+        refclk2:psgtr_usb_clock {
+                compatible = "fixed-clock";
+                #clock-cells = <0x00>;
+                clock-frequency = <100000000>;
+                };
+        refclk1:psgtr_pcie_clock {
+                compatible = "fixed-clock";
+                #clock-cells = <0x00>;
+                clock-frequency = <100000000>;
+                };
+};
+
+&psgtr {
+        status = "okay";
+        clocks = <&refclk1 &refclk1 &refclk2 &refclk3>;
+        /* ref clk instances used per lane */
+        clock-names = "ref0\0ref1\0ref2\0ref3";
+};
+
+/* PCIE instance 0, 1 at lane 0 and 1 refclk 100MHZ */
+&pcie {
+        status = "okay";
+        phys = <&psgtr 0x0 PHY_TYPE_PCIE 0 0>,<&psgtr 0x1 PHY_TYPE_PCIE 1 1>;
+};
+
+/* USB  instance 0 lane 2 refclk 100MHZ */
+&dwc3_0 {
+                status = "okay";
+                dr_mode = "host";
+                snps,usb3_lpm_capable;
+                phy-names = "usb3-phy";
+                phys = <&psgtr 0x2 PHY_TYPE_USB3 0x00 2>;
+                maximum-speed = "super-speed";
+};
+
+/* DP instance 0 lane 3 refclk 27MHZ */
+&zynqmp_dpsub {
+        status = "okay";
+        phy-names = "dp-phy0";
+        phys = <&psgtr 0x3 PHY_TYPE_DP 0x00 3>;
+};
+
+&cli_main_hier_axi_epc_0{
+        #address-cells = <1>;
+        #size-cells = <2>;
+        ranges = <0 0 0xa0000000 0x00100000 1 0 0xa0100000 0x00100000>;
+
+        cs2@0,0{
+                compatible = "pdnabus_cs2";
+                reg = <0 0 0x00100000>;
+                interrupt-parent = <&gic>;
+                interrupts = <0 92 4>; //only comment out for DW
+        };
+        // cs3@1,0{
+        //      compatible = "pdnabus_cs3";
+        //      reg = <1 0 0x00100000>;
+        //      interrupt-parent = <&gic>;
+        //      interrupts = <0 0x38 4>;
+        // };
+
+};
+
+/ {
+        //RTC located on PWR board
+        pdna_rtc: pdna_rtc@a00D0000 {
+                compatible = "uei,pdna-rtc";
+                reg = <0x0 0xa00d0000 0x0 0x2100>;
+        };
+};
+
+&rtc {
+        status = "disabled";
+};
+
+/* GEM0 */
+&gem0 {
+        xlnx,ptp-enet-clock = <0x0>;
+        status = "okay";
+        phy-mode = "rgmii-id";
+        phy-handle = <&phy1>;
+        tsu_clk=<250000000>; //250MHz provided by IOPLL
+
+        fixed-link {
+                speed = <1000>;
+                full-duplex;
+        };
+};
+
+/* GEM1 */
+&gem1 {
+        status = "okay";
+        phy-handle = <&phy1>;
+        phy-mode = "rgmii-id";
+        xlnx,has-mdio = <0x1>;
+
+        psu_ethernet_1_mdio: mdio {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                phy1: ethernet-phy@7 {
+                        compatible = "ethernet-phy-id2000.a231";
+                        device-type = "ethernet-phy";
+                        reg = <0x07>;
+                        ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_75_NS>;
+                        ti,tx-internal-delay = <DP83867_RGMIIDCTL_2_75_NS>;
+                        ti,fifo-depth = <DP83867_PHYCR_FIFO_DEPTH_4_B_NIB>;
+                        ti,dp83867-rxctrl-strap-quirk = <1>;
+                };
+        };
+};
+
+/* GEM2 */
+&gem2 {
+        status = "disabled";
+};
+
+&pinctrl0 {
+        status = "okay";
+         pinctrl_usb0_default: usb0-default {
+               mux {
+                       groups = "usb0_0_grp";
+                       function = "usb0";
+               };
+                           conf {
+                       groups = "usb0_0_grp";
+                       slew-rate = <SLEW_RATE_SLOW>;
+                       io-standard = <IO_STANDARD_LVCMOS18>;
+               };
+
+               conf-rx {
+                       pins = "MIO52", "MIO53", "MIO55";
+                       bias-high-impedance;
+               };
+
+               conf-tx {
+                       pins = "MIO54", "MIO56", "MIO57", "MIO58", "MIO59",
+                               "MIO60", "MIO61", "MIO62", "MIO63";
+                       bias-disable;
+               };
+       };
+};
+
+/* USB 2.0 */
+&usb0 {
+        status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&pinctrl_usb0_default>;
+};
+
+&gpio{
+        status = "okay";
+
+        static_usb_reset{
+                gpio-hog;
+                gpios = <76 0>;
+                output-high;
+        };
+
+        static_dp_enable{
+                gpio-hog;
+                gpios = <24 0>;
+                output-high;
+        };
+
+        static_emmc_reset{
+                gpio-hog;
+                gpios = <23 0>;
+                output-high;
+        };
+};
+
+//enable QSPI and create partition
+&qspi{
+        status = "okay";
+        num-cs = <2>;
+        flash0: flash@0 {
+                compatible = "jedec,spi-nor";
+                reg = <0 1>;
+                parallel-memories = /bits/ 64 <0x4000000 0x4000000>;
+                spi-tx-bus-width=<4>;
+                spi-rx-bus-width=<4>;
+                spi-max-frequency = <108000000>;
+                #address-cells = <1>;
+                #size-cells = <1>;
+                partitions {
+                        compatible = "fixed-partitions";
+                        #address-cells = <1>;
+                        #size-cells = <1>;
+                        partition@qspi-boot {
+                                label = "qspi-boot";
+                                reg = <0x00000000 0x01e00000>;
+                        };
+                        partition@qspi-bootenv {
+                                label = "qspi-bootenv";
+                                reg = <0x01e00000 0x00020000>;
+                        };
+                        partition@qspi-pdna {
+                                label = "qspi-pdna";
+                                reg = <0x01e20000 0x00020000>;
+                        };
+                };
+        };
+};
+
+&i2c0{
+        status = "okay";
+};
+
+//add in tpm chip - Disable TPM until further development on it
+&spi0{
+        status = "disabled";
+        compatible = "cdns,spi-r1p6";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        num-cs = <1>;
+
+        tpm_tis@0 {
+                compatible = "tis,tpm2-spi", "infineon,slb9670";
+                reg = <0>;
+                spi-max-frequency = <43000000>;
+        };
+};

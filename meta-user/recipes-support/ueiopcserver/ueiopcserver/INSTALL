@@ -1,0 +1,9 @@
+To install the ueiopcserver package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueiopcserver-<version>.tgz
+  cd ueiopcserver-<version>
+  ./pkgupgrade.sh
+
+

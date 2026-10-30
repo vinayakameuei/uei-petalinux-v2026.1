@@ -1,0 +1,40 @@
+From 72f99190aeb762950c650dc1b2dd658b2d55ef98 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Thu, 5 Mar 2026 03:41:48 -0500
+Subject: [PATCH] u-boot: add support for 9EG-TSN
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm/mach-zynqmp/pdna-zynqmp.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/arch/arm/mach-zynqmp/pdna-zynqmp.c b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+index f432326576a..eb66a8ecf45 100644
+--- a/arch/arm/mach-zynqmp/pdna-zynqmp.c
++++ b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+@@ -216,6 +216,19 @@ static void uboot_env_set(void){
+                                env_set("fdt_file", "system-top-4eg.dtb");
+                        }
+                }
++               else if(!strcmp(zynq_desc->name, "zu9eg")){
++                       if((is_tsn_available() != -1)) {
++                               //now check license is set correctly
++                               if (license_valid(&pram) && (options & OPTION_TSN)){
++                                       env_set("fdt_file", "system-top-9eg-tsn.dtb");
++                               }else{
++                                       printf("TSN Found but invalid License!\n");
++                                       env_set("fdt_file", "system-top-9eg.dtb");
++                               }
++                       }else {
++                               env_set("fdt_file", "system-top-9eg.dtb");
++                       }
++               }
+                else{
+                        if((is_tsn_available() != -1)) {
+                                //now check license is set correctly
+-- 
+2.25.1
+

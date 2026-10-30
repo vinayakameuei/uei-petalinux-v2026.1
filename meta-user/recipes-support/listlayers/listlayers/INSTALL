@@ -1,0 +1,9 @@
+To install the listlayers package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf listlayers-<version>.tgz
+  cd listlayers-<version>
+  ./pkgupgrade.sh
+
+

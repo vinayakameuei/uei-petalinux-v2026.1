@@ -1,0 +1,9 @@
+To install the ueipallib package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueipallib-<version>.tgz
+  cd ueipallib-<version>
+  ./pkgupgrade.sh
+
+

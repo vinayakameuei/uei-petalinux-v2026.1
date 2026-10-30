@@ -1,0 +1,23 @@
+From ba15c874b19c775970d918dce2720f413e004d22 Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+Date: Thu, 20 Aug 2026 11:11:26 +0530
+Subject: [PATCH] set zu4 partial identifier for 4eg
+
+
+diff --git a/arch/arm/mach-zynqmp/pdna-zynqmp.c b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+index af97ff33474..1cf1ada65da 100644
+--- a/arch/arm/mach-zynqmp/pdna-zynqmp.c
++++ b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+@@ -208,7 +208,8 @@ static void uboot_env_set(void){
+                                env_set("fdt_file", "system-top-4ev.dtb");
+                        }
+                }
+-               else if(!strcmp(zynq_desc->name, "zu4eg")){
++               else if(!strcmp(zynq_desc->name, "zu4") ||
++                      !strcmp(zynq_desc->name, "zu4eg")){
+                        if((is_tsn_available() != -1)) {
+                                //now check license is set correctly
+                                if (license_valid(&pram) && (options & OPTION_TSN)){
+--
+2.34.1
+

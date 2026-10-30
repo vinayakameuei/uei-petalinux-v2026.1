@@ -1,0 +1,9 @@
+To install the uei-sddm-theme package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf uei-sddm-theme-<version>.tgz
+  cd uei-sddm-theme-<version>
+  ./pkgupgrade.sh
+
+

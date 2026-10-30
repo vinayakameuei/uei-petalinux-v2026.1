@@ -1,0 +1,119 @@
+From f04cc9d1829657b0318fd040f3c5744675bda473 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 26 Sep 2025 06:03:28 +0000
+Subject: [PATCH] LED configuration for ZynqMP PHY interfaces v6.6_LTS_2024.2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ drivers/net/phy/dp83867.c | 64 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
+
+diff --git a/drivers/net/phy/dp83867.c b/drivers/net/phy/dp83867.c
+index e397e7d642d9..c518e68b2229 100644
+--- a/drivers/net/phy/dp83867.c
++++ b/drivers/net/phy/dp83867.c
+@@ -17,6 +17,7 @@
+ #include <linux/nvmem-consumer.h>
+ 
+ #include <dt-bindings/net/ti-dp83867.h>
++//#define DEBUG_PRINT 1
+ 
+ #define DP83867_PHY_ID		0x2000a231
+ #define DP83867_DEVADDR		0x1f
+@@ -30,6 +31,9 @@
+ #define DP83867_LEDCR2		0x19
+ #define DP83867_CFG3		0x1e
+ #define DP83867_CTRL		0x1f
++#define MII_DP83867_LEDCR1  0x18
++#define MII_DP83867_LEDCR2  0x19
++#define MII_DP83867_LEDCR3  0x1a
+ 
+ /* Extended Registers */
+ #define DP83867_FLD_THR_CFG	0x002e
+@@ -99,6 +103,41 @@
+ #define DP83867_STRAP_STS2_CLK_SKEW_NONE	BIT(2)
+ #define DP83867_STRAP_STS2_STRAP_FLD		BIT(10)
+ 
++/* CFG2 bits */
++#define MII_DP83867_CFG2_SPEEDOPT_10EN         0x0040
++#define MII_DP83867_CFG2_SGMII_AUTONEGEN       0x0080
++#define MII_DP83867_CFG2_SPEEDOPT_ENH          0x0100
++#define MII_DP83867_CFG2_SPEEDOPT_CNT          0x0800
++#define MII_DP83867_CFG2_SPEEDOPT_INTLOW       0x2000
++#define MII_DP83867_CFG2_MASK                  0x003F
++
++/* MII_DP83867_LEDCR1 bits */
++#define MII_DP83867_LEDCR1_SEL(N,V)    (((V)&0xf)<<((N)*4))
++#define MII_DP83867_LEDCR1_LINK_EST        0x0
++#define MII_DP83867_LEDCR1_RXTX_ACT        0x1
++#define MII_DP83867_LEDCR1_TX_ACT          0x2
++#define MII_DP83867_LEDCR1_RX_ACT          0x3
++#define MII_DP83867_LEDCR1_COLLISION       0x4
++#define MII_DP83867_LEDCR1_1000BT          0x5
++#define MII_DP83867_LEDCR1_100BTX          0x6
++#define MII_DP83867_LEDCR1_10BT            0x7
++#define MII_DP83867_LEDCR1_10_100BT        0x8
++#define MII_DP83867_LEDCR1_100_1000BT      0x9
++#define MII_DP83867_LEDCR1_FULL_DUP        0xA
++#define MII_DP83867_LEDCR1_LINK_BLINK      0xB
++#define MII_DP83867_LEDCR1_RXTX_ERR        0xD
++#define MII_DP83867_LEDCR1_RX_ERR          0xE
++
++/* MIIM_DP83867_LEDCR2 bits */
++#define MII_DP83867_LEDCR2_SEL(N,V)    (((V)&0xf)<<((N)*4))
++#define MII_DP83867_LEDCR2_DRV_EN      (1L<<0)
++#define MII_DP83867_LEDCR2_DRV_VAL     (1L<<1)
++#define MII_DP83867_LEDCR2_POLARITY    (1L<<2)
++
++#define LED0  0
++#define LED1  1
++#define LED2  2
++
+ /* PHY CTRL bits */
+ #define DP83867_PHYCR_TX_FIFO_DEPTH_SHIFT	14
+ #define DP83867_PHYCR_RX_FIFO_DEPTH_SHIFT	12
+@@ -586,6 +625,13 @@ static int dp83867_of_init(struct phy_device *phydev)
+ 	if (!of_node)
+ 		return -ENODEV;
+ 
++#ifdef DEBUG_PRINT
++        printk("\ndp83867_of_init\n");
++     printk("phyid = 0x%x\n", phydev->phy_id);
++     printk("interface = %d\n", phydev->interface);
++     printk("dev->driver = %s\n", dev->driver->name);
++#endif
++
+ 	/* Optional configuration */
+ 	ret = of_property_read_u32(of_node, "ti,clk-output-sel",
+ 				   &dp83867->clk_output_sel);
+@@ -929,6 +975,24 @@ static int dp83867_config_init(struct phy_device *phydev)
+ 			       mask, val);
+ 	}
+ 
++       /* Configure LEDs */
++       //Need to wait until PHYs are established as RGMII interface.
++       //Originally they are configured as GMII
++       if(phydev->interface == PHY_INTERFACE_MODE_RGMII_ID){
++#ifdef DEBUG_PRINT
++               printk("Configuring LEDs\n");
++#endif
++               phy_write(phydev, MII_DP83867_LEDCR1,
++                       (MII_DP83867_LEDCR1_SEL(LED2, MII_DP83867_LEDCR1_LINK_BLINK)) |
++                       (MII_DP83867_LEDCR1_SEL(LED1, MII_DP83867_LEDCR1_100BTX)) |
++                       (MII_DP83867_LEDCR1_SEL(LED0, MII_DP83867_LEDCR1_1000BT)));
++
++               phy_write(phydev, MII_DP83867_LEDCR2,
++                       (MII_DP83867_LEDCR2_SEL(LED0, 0)) |
++                       (MII_DP83867_LEDCR2_SEL(LED1, MII_DP83867_LEDCR2_POLARITY)) |
++                       (MII_DP83867_LEDCR2_SEL(LED0, MII_DP83867_LEDCR2_POLARITY)));
++       }
++
+ 	return 0;
+ }
+ 
+-- 
+2.44.1
+

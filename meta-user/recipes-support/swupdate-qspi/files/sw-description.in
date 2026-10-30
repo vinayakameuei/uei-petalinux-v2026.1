@@ -1,0 +1,27 @@
+software =
+{
+    version = "1.0";
+    description = "UEI recovery update: QSPI image";
+    hardware-compatibility: [ "1.0" ];
+
+    stable =
+    {
+        main =
+        {
+            files: (
+                {
+                    filename = "qspi_boot_@VARIANT@_@MACHINE_NAME@.bin";
+                    type = "rawfile";
+                    path = "/tmp/QSPI_BOOT.BIN";
+                }
+            );
+
+            scripts: (
+                {
+                    filename = "postinstall-qspi.sh";
+                    type = "postinstall";
+                }
+            );
+        };
+    };
+}

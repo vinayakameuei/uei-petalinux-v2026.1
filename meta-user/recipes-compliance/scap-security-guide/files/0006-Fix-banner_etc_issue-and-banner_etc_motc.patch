@@ -1,0 +1,149 @@
+From e44bf39c19bce38ea1ee366275d8167562e40522 Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Mon, 17 Jun 2024 13:41:11 -0500
+Subject: [PATCH] Fix banner_etc_issue and banner_etc_motc
+
+---
+ .../accounts-banners/banner_etc_issue/ansible/shared.yml      | 2 +-
+ .../accounts/accounts-banners/banner_etc_issue/bash/shared.sh | 2 +-
+ .../accounts-banners/banner_etc_issue/oval/shared.xml         | 4 ++++
+ .../accounts-banners/banner_etc_motd/ansible/shared.yml       | 2 +-
+ .../accounts/accounts-banners/banner_etc_motd/bash/shared.sh  | 2 +-
+ .../system/accounts/accounts-banners/banner_etc_motd/rule.yml | 4 ++++
+ .../system/accounts/accounts-banners/login_banner_text.var    | 4 ++--
+ .../system/accounts/accounts-banners/motd_banner_text.var     | 2 +-
+ .../accounts/accounts-banners/remote_login_banner_text.var    | 4 ++--
+ products/openembedded/profiles/uei.profile                    | 2 +-
+ 10 files changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/ansible/shared.yml b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/ansible/shared.yml
+index 1dea09b2f9..047e3acaa1 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/ansible/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/ansible/shared.yml
+@@ -1,4 +1,4 @@
+-# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_sle
++# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_sle,multi_platform_openembedded
+ # reboot = false
+ # strategy = unknown
+ # complexity = low
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/bash/shared.sh b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/bash/shared.sh
+index 63ceaaf88f..2d553b1039 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/bash/shared.sh
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/bash/shared.sh
+@@ -1,4 +1,4 @@
+-# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle,multi_platform_ubuntu
++# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle,multi_platform_ubuntu,multi_platform_openembedded
+ 
+ {{{ bash_instantiate_variables("login_banner_text") }}}
+ 
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/oval/shared.xml b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/oval/shared.xml
+index 977a1b6209..5b7b0c2aa8 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/oval/shared.xml
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_issue/oval/shared.xml
+@@ -13,7 +13,11 @@
+ 
+   <ind:textfilecontent54_object id="object_banner_etc_issue" version="1">
+     <ind:behaviors singleline="true" multiline="false" />
++    {{% if product in ["openembedded"] -%}}
++    <ind:filepath operation="pattern match">^/etc/issue</ind:filepath>
++    {{%- else -%}}
+     <ind:filepath operation="pattern match">^/etc/issue(\.d/.*)?$</ind:filepath>
++    {{%- endif %}}
+     <ind:pattern operation="pattern match">^(.*)$</ind:pattern>
+     <ind:instance datatype="int" operation="greater than or equal">1</ind:instance>
+   </ind:textfilecontent54_object>
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/ansible/shared.yml b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/ansible/shared.yml
+index 5735d20358..8151e1a932 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/ansible/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/ansible/shared.yml
+@@ -1,4 +1,4 @@
+-# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle
++# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle,multi_platform_openembedded
+ # reboot = false
+ # strategy = unknown
+ # complexity = low
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/bash/shared.sh b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/bash/shared.sh
+index 4d77e8336d..b87c3d3e99 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/bash/shared.sh
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/bash/shared.sh
+@@ -1,4 +1,4 @@
+-# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle,multi_platform_ubuntu
++# platform = multi_platform_rhel,multi_platform_fedora,multi_platform_ol,multi_platform_rhv,multi_platform_sle,multi_platform_ubuntu,multi_platform_openembedded
+ 
+ {{{ bash_instantiate_variables("motd_banner_text") }}}
+ 
+diff --git a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/rule.yml b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/rule.yml
+index 3992fc2eda..2386dc768c 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/rule.yml
++++ b/linux_os/guide/system/accounts/accounts-banners/banner_etc_motd/rule.yml
+@@ -34,6 +34,10 @@ description: |-
+     OR:
+     <br /><br />
+     <tt>I've read &amp; consent to terms in IS user agreem't.</tt>
++    <br /><br />
++    OR:
++    <br /><br />
++    <tt>Authorized uses only. All activity may be monitored and reported.</tt>
+ 
+ rationale: |-
+     Display of a standardized and approved use notification before granting
+diff --git a/linux_os/guide/system/accounts/accounts-banners/login_banner_text.var b/linux_os/guide/system/accounts/accounts-banners/login_banner_text.var
+index 242eb0f0c2..ff8e24cf2b 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/login_banner_text.var
++++ b/linux_os/guide/system/accounts/accounts-banners/login_banner_text.var
+@@ -12,10 +12,10 @@ operator: equals
+ 
+ interactive: false
+ 
+-{{% set var_dod_default="You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:\n-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.\n-At any time, the USG may inspect and seize data stored on this IS.\n-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.\n-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details." %}}
++{{% set var_dod_default="You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:\n-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.\n-At any time, the USG may inspect and seize data stored on this IS.\n-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.\n-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details.\n\n.- UEIPAC SEC 6.6-scarthgap -." %}}
+ {{% set var_dod_short = "I've read & consent to terms in IS user agreem't." %}}
+ {{% set var_cis_default = "Authorized uses only. All activity may be monitored and reported." %}}
+-{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu)).*" %}}
++{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu|openembedded)).*" %}}
+ 
+ options:
+ # CIS doesn't enforce any specific content for login banners, but doesn't allow technical information.
+diff --git a/linux_os/guide/system/accounts/accounts-banners/motd_banner_text.var b/linux_os/guide/system/accounts/accounts-banners/motd_banner_text.var
+index 3d1bfb5b14..43300d61a3 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/motd_banner_text.var
++++ b/linux_os/guide/system/accounts/accounts-banners/motd_banner_text.var
+@@ -15,7 +15,7 @@ interactive: false
+ {{% set var_dod_default="You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:\n-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.\n-At any time, the USG may inspect and seize data stored on this IS.\n-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.\n-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details." %}}
+ {{% set var_dod_short = "I've read & consent to terms in IS user agreem't." %}}
+ {{% set var_cis_default = "Authorized uses only. All activity may be monitored and reported." %}}
+-{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu)).*" %}}
++{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu|openembedded)).*" %}}
+ 
+ options:
+ # CIS doesn't enforce any specific content for login banners, but doesn't allow technical information.
+diff --git a/linux_os/guide/system/accounts/accounts-banners/remote_login_banner_text.var b/linux_os/guide/system/accounts/accounts-banners/remote_login_banner_text.var
+index 14f6eb5aa8..9a74559329 100644
+--- a/linux_os/guide/system/accounts/accounts-banners/remote_login_banner_text.var
++++ b/linux_os/guide/system/accounts/accounts-banners/remote_login_banner_text.var
+@@ -12,10 +12,10 @@ operator: equals
+ 
+ interactive: false
+ 
+-{{% set var_dod_default="You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:\n-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.\n-At any time, the USG may inspect and seize data stored on this IS.\n-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.\n-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details." %}}
++{{% set var_dod_default="You are accessing a U.S. Government (USG) Information System (IS) that is provided for USG-authorized use only. By using this IS (which includes any device attached to this IS), you consent to the following conditions:\n-The USG routinely intercepts and monitors communications on this IS for purposes including, but not limited to, penetration testing, COMSEC monitoring, network operations and defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence (CI) investigations.\n-At any time, the USG may inspect and seize data stored on this IS.\n-Communications using, or data stored on, this IS are not private, are subject to routine monitoring, interception, and search, and may be disclosed or used for any USG-authorized purpose.\n-This IS includes security measures (e.g., authentication and access controls) to protect USG interests--not for your personal benefit or privacy.\n-Notwithstanding the above, using this IS does not constitute consent to PM, LE or CI investigative searching or monitoring of the content of privileged communications, or work product, related to personal representation or services by attorneys, psychotherapists, or clergy, and their assistants. Such communications and work product are private and confidential. See User Agreement for details.\n\n.- UEIPAC-SEC 6.6-scarthgap -." %}}
+ {{% set var_dod_short = "I've read & consent to terms in IS user agreem't." %}}
+ {{% set var_cis_default = "Authorized uses only. All activity may be monitored and reported." %}}
+-{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu)).*" %}}
++{{% set var_cis_regex = "^(?!.*(\\\\|fedora|rhel|sle|ubuntu|openembedded)).*" %}}
+ 
+ options:
+ # CIS doesn't enforce any specific content for login banners, but doesn't allow technical information.
+diff --git a/products/openembedded/profiles/uei.profile b/products/openembedded/profiles/uei.profile
+index 7ba7e552d2..7bbe41c57f 100644
+--- a/products/openembedded/profiles/uei.profile
++++ b/products/openembedded/profiles/uei.profile
+@@ -113,7 +113,7 @@ selections:
+     - banner_etc_motd
+     - motd_banner_text=cis_banners
+     - banner_etc_issue
+-    - login_banner_text=cis_banners
++    - login_banner_text=dod_banners
+     - file_groupowner_etc_motd
+     - file_owner_etc_motd
+     - file_permissions_etc_motd

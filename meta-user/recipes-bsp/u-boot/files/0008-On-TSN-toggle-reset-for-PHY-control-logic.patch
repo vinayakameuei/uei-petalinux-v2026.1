@@ -1,0 +1,191 @@
+From 2913ff5b7dc0d1c2d91208225ed3938d7637053a Mon Sep 17 00:00:00 2001
+From: Alex Servadio <alex.servadio@ametek.com>
+Date: Fri, 20 Feb 2026 18:13:48 +0000
+Subject: [PATCH] On TSN toggle reset for PHY control logic
+
+The PHYs on NIC1 and NIC3 (end0 and end2) are controlled by logic.
+These need to be reset with the PHYs otherwise the network can lock up.
+
+Force PHY/TSN Logic to occur in zynq_gem probe
+
+Initially we relied on the PHY probe function that may or may not be used.
+Call it directly in zynq_gem probe.
+Fix warnings.
+---
+ drivers/net/zynq_gem.c | 123 +++++++++++++++++++++++++++++++++++------
+ 1 file changed, 107 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/net/zynq_gem.c b/drivers/net/zynq_gem.c
+index b80c1590e80..da55c4f4714 100644
+--- a/drivers/net/zynq_gem.c
++++ b/drivers/net/zynq_gem.c
+@@ -422,44 +422,127 @@ static int zynq_phy_init(struct udevice *dev)
+  * We need to set this pin low for >1us once. For now we are going
+  * to hack this together by writing to the GPIO register space to toggle the pin.
+  *
+- * In the future, we may want to set this up properly using the device tree and driver model etc.
++ * On TSN the PHYs on NIC1 and NIC3 (eth0 and eth2 respectively) are controlled by logic.
++ * These logic blocks must be reset in conjunction with the PHYs. GPIO pin MIO 78 aka EMIO 0
++ * is connected to these.
++ *
++ * In the future, we may want to set all of this up properly using the device tree and driver model etc.
+  */
+ 
+ #define ZYNQ_GPIO_BASE  0xFF0A0000
++
+ #define ZYNQ_GPIO_DATA_2_MSW  0x14
+ #define ZYNQ_GPIO_DIRM_2      0x284
+ #define ZYNQ_GPIO_OEN_2       0x288
++#define ZYNQ_GPIO_DATA_3_LSW  0x18
++#define ZYNQ_GPIO_DIRM_3      0x2C4
++#define ZYNQ_GPIO_OEN_3       0x2C8
++
++
+ #define ZYNQ_MIO_77_BANK_PIN  0x02000000
+ #define ZYNQ_MIO_77_SET_ZERO  0xFDFF0000
+ #define ZYNQ_MIO_77_SET_ONE   0xFDFF0200
++#define ZYNQ_MIO_78_BANK_PIN  0x00000001
++#define ZYNQ_MIO_78_SET_ZERO  0xFFFE0000
++#define ZYNQ_MIO_78_SET_ONE   0xFFFE0001
++
+ #define ZYNQ_PHY_RESET_DLY_US 10            // It seems to take 2us to get to 0 on the 'scope.
+                                             // 10us should be more than enough time.
++#define ZYNQ_PHY_RESET_SETTLE_DLY_US 300    // Data sheet says 194us.
+ 
+-static int G_phy_reset_done = 0;
++#define UEI_DIRECT_PHY_RESET 1
+ 
+-static int zynq_uei_phy_reset(struct mii_dev *bus)
++// Switch GPIO 78 (aka EMIO 0) to be an output and drive it high.
++static void init_tsn_phy_ctl_reset_line(void)
+ {
+ 	u32 reg;
++
++	// set as output
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_3);
++	reg |= ZYNQ_MIO_78_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_3);
++
++	// Enable output.
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_3);
++	reg |= ZYNQ_MIO_78_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_3);
++
++	// Set it to high as default.
++	writel(ZYNQ_MIO_78_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_3_LSW);
++}
++
++static void set_tsn_phy_ctl_reset_line(int on)
++{
++	if (on)
++		writel(ZYNQ_MIO_78_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_3_LSW);
++	else
++		writel(ZYNQ_MIO_78_SET_ZERO, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_3_LSW);
++}
++
++// Setup GPIO 77 to be the reset line for the PHYs
++static void init_phy_reset_line(void)
++{
++	u32 reg;
++
++	// set as output
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++	reg |= ZYNQ_MIO_77_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++
++	// Enable output.
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++	reg |= ZYNQ_MIO_77_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++
++	// We can default to high...
++	writel(ZYNQ_MIO_77_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++}
++
++static void set_phy_reset_line(int on)
++{
++	if (on)
++		writel(ZYNQ_MIO_77_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++	else
++		writel(ZYNQ_MIO_77_SET_ZERO, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++}
++
++// We need to know if we are TSN. Pull in is_tsn_available()
++int is_tsn_available(void);
++#define IS_TSN_UNIT (-1 != is_tsn_available())
++
++static int G_phy_reset_done = 0;
++// Toggle GPIO 77 to reset the PHYs. If we are a TSN unit toggle GPIO 78.
++static int zynq_uei_phy_reset(struct mii_dev *bus)
++{
+ 	if (!G_phy_reset_done) {
++		debug("PHYs: Performing reset\n");
+ 		G_phy_reset_done = 1;
+ 
+-		// set as output
+-		reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
+-		reg |= ZYNQ_MIO_77_BANK_PIN;
+-		writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++		init_phy_reset_line();
++		if (IS_TSN_UNIT) {
++			init_tsn_phy_ctl_reset_line();
++			debug("PHYs: TSN detected. Resetting PHY CTL\n");
++		}
++
++		// Bring the PHY reset line low for >1us
++		// If TSN also bring the PHY controllers down
++		set_phy_reset_line(0);
++		if (IS_TSN_UNIT)
++			set_tsn_phy_ctl_reset_line(0);
+ 
+-		// Enable output.
+-		reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
+-		reg |= ZYNQ_MIO_77_BANK_PIN;
+-		writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++		udelay(ZYNQ_PHY_RESET_DLY_US);
++		set_phy_reset_line(1);
+ 
+-		// Toggle the line. Make sure it goes low for >1us
+-		writel(ZYNQ_MIO_77_SET_ZERO, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
+-		udelay(ZYNQ_PHY_RESET_DLY_US); // at least 1 us
+-		writel(ZYNQ_MIO_77_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++		// Per the data sheet wait ~200us before trying to access the registers.
++		// Hold of the Logic elements which control it.
++		if (IS_TSN_UNIT) {
++			udelay(ZYNQ_PHY_RESET_SETTLE_DLY_US);
++			set_tsn_phy_ctl_reset_line(1);
++		}
+ 	}
+-}
+ 
++	return 0;
++}
+ 
+ static int zynq_gem_init(struct udevice *dev)
+ {
+@@ -1013,7 +1096,11 @@ static int zynq_gem_probe(struct udevice *dev)
+ 		priv->bus = mdio_alloc();
+ 		priv->bus->read = zynq_gem_miiphy_read;
+ 		priv->bus->write = zynq_gem_miiphy_write;
++#if UEI_DIRECT_PHY_RESET
++		priv->bus->reset = NULL;
++#else
+ 		priv->bus->reset = zynq_uei_phy_reset;
++#endif
+ 		priv->bus->priv = priv;
+ 
+ 		ret = mdio_register_seq(priv->bus, dev_seq(dev));
+@@ -1024,6 +1111,10 @@ static int zynq_gem_probe(struct udevice *dev)
+ 	if (IS_ENABLED(CONFIG_DM_ETH_PHY))
+ 		eth_phy_set_mdio_bus(dev, priv->bus);
+ 
++#if UEI_DIRECT_PHY_RESET
++	zynq_uei_phy_reset(priv->bus);
++#endif
++
+ 	ret = zynq_phy_init(dev);
+ 	if (ret)
+ 		goto err3;
+-- 
+2.44.4
+

@@ -1,0 +1,62 @@
+From 49e41d5b65d18aa4d14253c12b684ef9251be2ad Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Wed, 8 May 2024 13:31:34 -0500
+Subject: [PATCH] Add UEI support
+
+---
+ products/openembedded/product.yml          |  4 +++
+ shared/checks/oval/installed_OS_is_uei.xml | 33 ++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
+ create mode 100644 shared/checks/oval/installed_OS_is_uei.xml
+
+diff --git a/products/openembedded/product.yml b/products/openembedded/product.yml
+index 1a7b4a0ec4..7d7d07ca9a 100644
+--- a/products/openembedded/product.yml
++++ b/products/openembedded/product.yml
+@@ -22,3 +22,7 @@ cpes:
+       name: "cpe:/o:openembedded:poky:"
+       title: "OpenEmbedded Poky reference distribution"
+       check_id: installed_OS_is_poky
++  - ueisec:
++      name: "cpe:/o:openembedded:petalinux:2025.2-scarthgap"
++      title: "OpenEmbedded UEI distribution"
++      check_id: installed_OS_is_uei
+diff --git a/shared/checks/oval/installed_OS_is_uei.xml b/shared/checks/oval/installed_OS_is_uei.xml
+new file mode 100644
+index 0000000000..90477f7ea6
+--- /dev/null
++++ b/shared/checks/oval/installed_OS_is_uei.xml
+@@ -0,0 +1,33 @@
++<def-group>
++  <definition class="inventory" id="installed_OS_is_uei" version="1">
++    <metadata>
++      <title>UEI</title>
++      <affected family="unix">
++        <platform>multi_platform_all</platform>
++      </affected>
++      <description>The operating system installed is a UEI based System</description>
++    </metadata>
++    <criteria comment="System is UEI based distribution" operator="AND">
++      <extend_definition comment="Installed OS is part of the Unix family" definition_ref="installed_OS_is_part_of_Unix_family" />
++      <criterion comment="UEI based distro" test_ref="test_os_uei" />
++      <criterion comment="UEI based distribution is installed" test_ref="test_uei" />
++    </criteria>
++  </definition>
++
++  <unix:file_test check="all" check_existence="all_exist" comment="/etc/os-release exists" id="test_os_uei" version="1">
++    <unix:object object_ref="obj_os_uei" />
++  </unix:file_test>
++  <unix:file_object comment="check /etc/os-release file" id="obj_os_uei" version="1">
++    <unix:filepath>/etc/os-release</unix:filepath>
++  </unix:file_object>
++
++  <ind:textfilecontent54_test check="all" check_existence="at_least_one_exists" comment="Check OpenEmbedded" id="test_uei" version="1">
++    <ind:object object_ref="obj_uei" />
++  </ind:textfilecontent54_test>
++  <ind:textfilecontent54_object id="obj_uei" version="1" comment="Check UEI">
++    <ind:filepath>/etc/os-release</ind:filepath>
++    <ind:pattern operation="pattern match">^ID=petalinux$</ind:pattern>
++    <ind:instance datatype="int">1</ind:instance>
++  </ind:textfilecontent54_object>
++
++</def-group>

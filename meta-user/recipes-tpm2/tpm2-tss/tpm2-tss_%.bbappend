@@ -1,0 +1,3 @@
+#PACKAGECONFIG += " fapi"
+
+#RM_WORK_EXCLUDE += "${PN}"

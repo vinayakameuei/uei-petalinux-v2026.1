@@ -1,0 +1,9 @@
+To install the ueiopcuasdk package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueiopcuasdk-<version>.tgz
+  cd ueiopcuasdk-<version>
+  ./pkgupgrade.sh
+
+

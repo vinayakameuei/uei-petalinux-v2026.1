@@ -1,0 +1,40 @@
+From 02e8ebccdca40321f4ccb66721707242553964f6 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 26 Sep 2025 04:38:49 -0400
+Subject: [PATCH] correction on help ntl and ntl_phc
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ drivers/staging/ntl/Kconfig         | 2 --
+ drivers/staging/ntl/ntl_phc/Kconfig | 2 --
+ 2 files changed, 4 deletions(-)
+
+diff --git a/drivers/staging/ntl/Kconfig b/drivers/staging/ntl/Kconfig
+index 0048840ebc0a..fbebfa172134 100644
+--- a/drivers/staging/ntl/Kconfig
++++ b/drivers/staging/ntl/Kconfig
+@@ -1,8 +1,6 @@
+ config NTL
+        bool "NetTimeLogic devices"
+        default y
+-       ---help---
+-         If you have a NetTimeLogic IP Core.
+ 
+ if NTL
+ 
+diff --git a/drivers/staging/ntl/ntl_phc/Kconfig b/drivers/staging/ntl/ntl_phc/Kconfig
+index fbc249aa3950..70ba424a942f 100644
+--- a/drivers/staging/ntl/ntl_phc/Kconfig
++++ b/drivers/staging/ntl/ntl_phc/Kconfig
+@@ -6,5 +6,3 @@ config NTL_PHC
+        bool "NetTimeLogic PHC devices"
+        depends on HAS_IOMEM
+        default y
+-       ---help---
+-         If you have a Adjustable Counter Clock IP in the PL.
+-- 
+2.25.1
+

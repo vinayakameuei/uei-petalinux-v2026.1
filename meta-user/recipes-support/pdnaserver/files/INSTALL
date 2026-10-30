@@ -1,0 +1,9 @@
+To install the pdnaserver package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf pdnaserver-<version>.tgz
+  cd pdnaserver-<version>
+  ./pkgupgrade.sh
+
+

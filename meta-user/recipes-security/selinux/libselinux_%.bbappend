@@ -1,0 +1,1 @@
+RM_WORK_EXCLUDE += "${PN}"

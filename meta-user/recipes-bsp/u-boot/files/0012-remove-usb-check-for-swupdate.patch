@@ -1,0 +1,26 @@
+From c8267e44f2eb27e1878f39abc1ac753137708f4b Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+Date: Fri, 24 Jul 2026 06:23:18 +0000
+Subject: [PATCH] remove usb check for swupdate
+
+---
+ include/configs/xilinx_zynqmp.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/include/configs/xilinx_zynqmp.h b/include/configs/xilinx_zynqmp.h
+index b2adac504b5..569c298ebd9 100644
+--- a/include/configs/xilinx_zynqmp.h
++++ b/include/configs/xilinx_zynqmp.h
+@@ -218,8 +218,7 @@
+ #endif
+ 
+ #define CONFIG_BOOTCOMMAND \
+-       "usb reset; if usb storage; then setenv mmcroot ${mmcroot_recovery}; else setenv mmcroot ${mmcroot_main}; fi; run mmcboot"
+-
++	"usb reset; run mmcboot"
+ #if defined(CONFIG_SPL_SPI_FLASH_SUPPORT)
+ # define CONFIG_SYS_SPI_KERNEL_OFFS    0x80000
+ # define CONFIG_SYS_SPI_ARGS_OFFS      0xa0000
+-- 
+2.44.4
+

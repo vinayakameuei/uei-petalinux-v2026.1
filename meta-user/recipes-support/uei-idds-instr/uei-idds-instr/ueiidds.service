@@ -1,0 +1,14 @@
+[Unit]
+Description=UEI iDDS
+After=rc-local.service
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/ueiiDDS --background --nowait
+Restart=always
+RestartSec=1
+ExecStopPost=sleep 3
+PIDFile=/var/run/ueiiDDS.pid
+
+[Install]
+WantedBy=multi-user.target

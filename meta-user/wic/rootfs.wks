@@ -1,0 +1,6 @@
+# Description: Creates a partitioned eMMC/SD image with main and recovery rootfs.
+# # Boot files are located in the first vfat partition.
+# # Main rootfs is the normal OS. Recovery rootfs is a small SWUpdate OS.
+part /boot --source bootimg-partition --use-label --fstype=vfat --label boot     --active --align 4 --fixed-size 256M  --no-fstab-update
+part /     --source rootfs            --use-label --fstype=ext4 --label root              --align 4 --fixed-size 6200M --no-fstab-update
+part       --source rawcopy           --use-label --fstype=ext4 --label recovery          --align 4 --fixed-size 620M  --no-fstab-update --sourceparams="file=uei-image-recovery-zynq.ext4"

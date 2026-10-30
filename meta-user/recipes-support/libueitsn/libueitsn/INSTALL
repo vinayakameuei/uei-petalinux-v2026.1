@@ -1,0 +1,9 @@
+To install the libueitsn package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf libueitsn-<version>.tgz
+  cd libueitsn-<version>
+  ./pkgupgrade.sh
+
+

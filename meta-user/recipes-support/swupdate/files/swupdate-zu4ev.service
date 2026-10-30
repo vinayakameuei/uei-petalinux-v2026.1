@@ -1,0 +1,11 @@
+[Unit]
+Description=SWUpdate daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/swupdate -e stable,main -H zu4ev:1.0 -w "--document-root /www --port 8080"
+KillMode=mixed
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

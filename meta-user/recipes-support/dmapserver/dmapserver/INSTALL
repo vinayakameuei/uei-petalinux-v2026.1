@@ -1,0 +1,9 @@
+To install the dmapserver package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf dmapserver-<version>.tgz
+  cd dmapserver-<version>
+  ./pkgupgrade.sh
+
+

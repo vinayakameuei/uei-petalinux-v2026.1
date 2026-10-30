@@ -1,0 +1,545 @@
+From 7c429f9d7eb701a248c048589df1f01c875fe400 Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Thu, 13 Jun 2024 08:53:25 -0500
+Subject: [PATCH 5/5] Fix require_emergency_target_auth and
+ require_singleuser_auth
+
+---
+ .../ansible/shared.yml                        |  7 +++
+ .../bash/shared.sh                            |  4 ++
+ .../oval/shared.xml                           | 12 +++++
+ .../policy/stig/shared.yml                    | 12 +++++
+ .../require_emergency_target_auth/rule.yml    | 31 +++++++++--
+ .../tests/correct_value.pass.sh               | 12 +++--
+ .../tests/wrong_value.fail.sh                 | 10 +++-
+ .../ansible/shared.yml                        |  6 +++
+ .../require_singleuser_auth/bash/shared.sh    |  6 +++
+ .../require_singleuser_auth/oval/shared.xml   | 53 ++++++++++++++++++-
+ .../policy/stig/shared.yml                    | 12 +++++
+ .../require_singleuser_auth/rule.yml          | 25 +++++++++
+ .../tests/correct_value.pass.sh               | 12 +++--
+ .../tests/wrong_value.fail.sh                 | 10 +++-
+ 14 files changed, 195 insertions(+), 17 deletions(-)
+
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/ansible/shared.yml b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/ansible/shared.yml
+index a3490a60d1..d27943d162 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/ansible/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/ansible/shared.yml
+@@ -12,6 +12,13 @@
+       block: |
+         [Service]
+         ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++{{% elif 'openembedded' in product %}}
++- name: Require emergency mode password
++  lineinfile:
++      create: yes
++      dest: /usr/lib/systemd/system/emergency.service
++      regexp: "^#?ExecStart="
++      line: "ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency"
+ {{% else %}}
+ - name: Require emergency mode password
+   lineinfile:
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/bash/shared.sh b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/bash/shared.sh
+index 2a65ef992e..77e4d6fbd9 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/bash/shared.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/bash/shared.sh
+@@ -3,12 +3,16 @@
+ {{% if 'sle' in product %}}
+ service_dropin_cfg_dir="/etc/systemd/system/emergency.service.d"
+ service_dropin_file="${service_dropin_cfg_dir}/10-oscap.conf"
++{{% elif "openembedded" in product %}}
++service_file="/usr/lib/systemd/system/emergency.service"
+ {{% else %}}
+ service_file="/usr/lib/systemd/system/emergency.service"
+ {{% endif %}}
+ 
+ {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+ sulogin="/usr/lib/systemd/systemd-sulogin-shell emergency"
++{{% elif "openembedded" in product -%}}
++sulogin="/usr/lib/systemd/systemd-sulogin-shell emergency"
+ {{%- else -%}}
+ sulogin='/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"'
+ {{%- endif %}}
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/oval/shared.xml b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/oval/shared.xml
+index 90ef51b2a7..131e24fb27 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/oval/shared.xml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/oval/shared.xml
+@@ -26,6 +26,8 @@
+     comment="Tests that
+     {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+     /usr/lib/systemd/systemd-sulogin-shell
++    {{% elif "openembedded" in product -%}}
++    /usr/lib/systemd/systemd-sulogin-shell
+     {{%- else -%}}
+     /sbin/sulogin
+     {{%- endif %}}
+@@ -35,9 +37,15 @@
+     <ind:object object_ref="obj_require_emergency_service" />
+   </ind:textfilecontent54_test>
+   <ind:textfilecontent54_object id="obj_require_emergency_service" version="1">
++    {{%- if product in ["fedora", "ol8", "ol9", "openeuler2203", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+     <ind:filepath>/usr/lib/systemd/system/emergency.service</ind:filepath>
++    {{%- elif "openembedded" in product -%}}
++    <ind:filepath>/usr/lib/systemd/system/emergency.service</ind:filepath>
++    {{%- endif -%}}
+     {{%- if product in ["fedora", "ol8", "ol9", "openeuler2203", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+     <ind:pattern operation="pattern match">^ExecStart=\-/usr/lib/systemd/systemd-sulogin-shell[\s]+emergency</ind:pattern>
++    {{%- elif "openembedded" in product -%}}
++    <ind:pattern operation="pattern match">^ExecStart=\-/usr/lib/systemd/systemd-sulogin-shell[\s]+emergency</ind:pattern>
+     {{%- else -%}}
+     <ind:pattern operation="pattern match">^ExecStart=\-/bin/sh[\s]+-c[\s]+\"(/usr)?/sbin/sulogin;[\s]+/usr/bin/systemctl[\s]+--fail[\s]+--no-block[\s]+default\"</ind:pattern>
+     {{%- endif -%}}
+@@ -67,7 +75,11 @@
+     <ind:object object_ref="obj_require_emergency_service_emergency" />
+   </ind:textfilecontent54_test>
+   <ind:textfilecontent54_object id="obj_require_emergency_service_emergency" version="1">
++    {{%- if "openembedded" in product -%}}
++    <ind:filepath>/usr/lib/systemd/system/emergency.target</ind:filepath>
++    {{%- else -%}}
+     <ind:filepath>/usr/lib/systemd/system/emergency.target</ind:filepath>
++    {{%- endif -%}}
+     <ind:pattern operation="pattern match">^Requires=.*emergency\.service</ind:pattern>
+     <ind:instance datatype="int">1</ind:instance>
+   </ind:textfilecontent54_object>
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/policy/stig/shared.yml b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/policy/stig/shared.yml
+index 46e01b3a80..bd9b7af127 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/policy/stig/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/policy/stig/shared.yml
+@@ -10,18 +10,30 @@ vuldiscussion: |-
+ checktext: |-
+     Verify that {{{ full_name }}} requires authentication for emergency mode with the following command:
+ 
++    {{% if "openembedded" in product %}}
++    $ grep sulogin /usr/lib/systemd/system/emergency.service
++
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% else %}}
+     $ grep sulogin /usr/lib/systemd/system/emergency.service
+ 
+     ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% endif %}}
+ 
+     If this line is not returned, or is commented out, this is a finding. If the output is different, this is a finding.
+ 
+ fixtext: |-
+     Configure {{{ full_name }}} to require authentication for emergency mode.
+ 
++    {{% if "openembedded" in product %}}
++    Add or modify the following line in the "/usr/lib/systemd/system/emergency.service" file:
++
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% else %}}
+     Add or modify the following line in the "/usr/lib/systemd/system/emergency.service" file:
+ 
+     ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% endif %}}
+ 
+ vuln_discussion: |-
+     To mitigate the risk of unauthorized access to sensitive information by entities that have been issued certificates by DOD-approved PKIs, all DOD systems (e.g., web servers and web portals) must be properly configured to incorporate access control methods that do not rely solely on the possession of a certificate for access. Successful authentication must not automatically give an entity access to an asset or security boundary. Authorization procedures and controls must be implemented to ensure each authenticated entity also has a validated and current authorization. Authorization is the process of determining whether an entity, once authenticated, is permitted to access a specific asset. Information systems use access control policies and enforcement mechanisms to implement this requirement.
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/rule.yml b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/rule.yml
+index 3366217dda..2442fba214 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/rule.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/rule.yml
+@@ -9,7 +9,11 @@ description: |-
+     during a failed boot sequence.
+     <br /><br />
+     By default, Emergency mode is protected by requiring a password and is set
+-    in <tt>/usr/lib/systemd/system/emergency.service</tt>.
++    {{% if "openembedded" in product %}}
++    in <tt>/usr/lib/systemd/system/rescue.service</tt>.
++    {{% else -%}}
++    in <tt>/usr/lib/systemd/system/rescue.service</tt>.
++    {{%- endif %}}
+ 
+ rationale: |-
+     This prevents attackers with physical access from trivially bypassing security
+@@ -49,19 +53,30 @@ ocil_clause: 'the output is different'
+ 
+ ocil: |-
+     To check if authentication is required for emergency mode, run the following command:
++    {{% if "openembedded" in product %}}
++    <pre>$ grep sulogin /usr/lib/systemd/system/emergency.service</pre>
++    {{% else -%}}
+     <pre>$ grep sulogin /usr/lib/systemd/system/emergency.service</pre>
++    {{%- endif %}}
+     The output should be similar to the following, and the line must begin with
+-    {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] -%}}
++    {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] %}}
+         ExecStart and /usr/lib/systemd/systemd-sulogin-shell.
+         <pre>ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency</pre>
+-    {{%- else -%}}
++    {{% elif "openembedded" in product -%}}
++        ExecStart and /usr/lib/systemd/systemd-sulogin-shell.
++        <pre>ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency</pre>
++    {{% else -%}}
+         ExecStart and /sbin/sulogin.
+         <pre>ExecStart=-/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"</pre>
+     {{%- endif %}}
+ 
+     Then, check if the emergency target requires the emergency service:
+     Run the following command:
++    {{% if "openembedded" in product %}}
++    <pre>$ sudo grep Requires /usr/lib/systemd/system/emergency.target</pre>
++    {{% else -%}}
+     <pre>$ sudo grep Requires /usr/lib/systemd/system/emergency.target</pre>
++    {{%- endif %}}
+     The output should be the following:
+     <pre>Requires=emergency.service</pre>
+ 
+@@ -78,10 +93,16 @@ ocil: |-
+ fixtext: |-
+     Configure {{{ full_name }}} to require authentication for system emergency mode.
+ 
++    {{%- if product not in ["openembedded"] -%}}
+     Add or edit the following line in "/usr/lib/systemd/system/emergency.service":
+-    {{% if product in ["fedora", "ol8", "ol9", "openeuler2203", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+-    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
+     {{%- else -%}}
++    Add or edit the following line in "/usr/lib/systemd/system/emergency.service":
++    {{%- endif -%}}
++    {{% if product in ["fedora", "ol8", "ol9", "openeuler2203", "rhel8", "rhel9", "sle12", "sle15"] %}}
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% elif "openembedded" in product -%}}
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell emergency
++    {{% else -%}}
+     ExecStart=-/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"
+     {{%- endif %}}
+ 
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/correct_value.pass.sh b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/correct_value.pass.sh
+index bce932b725..b149b3064c 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/correct_value.pass.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/correct_value.pass.sh
+@@ -1,8 +1,14 @@
+ #!/bin/bash
+-# platform = Oracle Linux 8,Oracle Linux 9,Red Hat Enterprise Linux 8,Red Hat Enterprise Linux 9,multi_platform_fedora
++# platform = OpenEmbedded, Oracle Linux 8,Oracle Linux 9,Red Hat Enterprise Linux 8,Red Hat Enterprise Linux 9,multi_platform_fedora
++
++{{%- if "openembedded" in product %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- else %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- endif %}}
+ 
+-service_file="/usr/lib/systemd/system/emergency.service"
+-sulogin="/usr/lib/systemd/systemd-sulogin-shell"
+ if grep "^ExecStart=.*" "$service_file" ; then
+     sed -i "s%^ExecStart=.*%ExecStart=-$sulogin emergency%" "$service_file"
+ else
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/wrong_value.fail.sh b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/wrong_value.fail.sh
+index d9fdc678f3..e2f86fb808 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/wrong_value.fail.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_emergency_target_auth/tests/wrong_value.fail.sh
+@@ -1,8 +1,14 @@
+ #!/bin/bash
+ # platform = multi_platform_fedora,multi_platform_ol,multi_platform_rhel
+ 
+-service_file="/usr/lib/systemd/system/emergency.service"
+-sulogin="/bin/bash"
++{{%- if "openembedded" in product %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- else %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- endif %}}
++
+ if grep "^ExecStart=.*" "$service_file" ; then
+     sed -i "s%^ExecStart=.*%ExecStart=-$sulogin emergency%" "$service_file"
+ else
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/ansible/shared.yml b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/ansible/shared.yml
+index 225a73f0b8..3218d96d23 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/ansible/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/ansible/shared.yml
+@@ -7,12 +7,18 @@
+ - name: Require single user mode password
+   lineinfile:
+       create: yes
++      {{% if product in ["openembedded"] -%}}
++      dest: /usr/lib/systemd/system/rescue.service
++      {{%- else -%}}
+       dest: /usr/lib/systemd/system/rescue.service
++      {{%- endif %}}
+       regexp: "^#?ExecStart="
+       {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+       line: "ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue"
+       {{% elif product in ["rhel7"] %}}
+       line: 'ExecStart=-/bin/sh -c "/usr/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"'
++      {{% elif product in ["openembedded"] %}}
++      line: "ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue"
+       {{%- else -%}}
+       line: 'ExecStart=-/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"'
+       {{%- endif %}}
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/bash/shared.sh b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/bash/shared.sh
+index e4624e5829..21eec2ae40 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/bash/shared.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/bash/shared.sh
+@@ -1,11 +1,17 @@
+ # platform = multi_platform_all
+ 
++{{% if 'openembedded' in product %}}
++service_file="/usr/lib/systemd/system/rescue.service"
++{{% else %}}
+ service_file="/usr/lib/systemd/system/rescue.service"
++{{% endif %}}
+ 
+ {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "sle12", "sle15"] -%}}
+ sulogin="/usr/lib/systemd/systemd-sulogin-shell rescue"
+ {{%- elif product in ["rhel7"] -%}}
+ sulogin='/bin/sh -c "/usr/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"'
++{{% elif product in ["openembedded"] -%}}
++sulogin="/usr/lib/systemd/systemd-sulogin-shell rescue"
+ {{%- else -%}}
+ sulogin='/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"'
+ {{%- endif %}}
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/oval/shared.xml b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/oval/shared.xml
+index 62fd1a76a2..a90ab0a1bc 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/oval/shared.xml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/oval/shared.xml
+@@ -5,10 +5,14 @@
+     <criteria operator="AND">
+       <criterion comment="Conditions are satisfied"
+       test_ref="test_require_rescue_service" />
+-      {{%- if product not in ["ol8", "rhel8"] -%}}
++      {{%- if product not in ["openembedded", "ol8", "rhel8"] -%}}
+       <criterion test_ref="test_require_rescue_service_runlevel1" />
+       <criterion test_ref="test_no_custom_runlevel1_target" negate="true"/>
+       <criterion test_ref="test_no_custom_rescue_service" negate="true"/>
++      {{%- elif product in ["openembedded"] -%}}
++      <criterion test_ref="test_require_rescue_service_rescue" />
++      <criterion test_ref="test_no_custom_rescue_target" negate="true"/>
++      <criterion test_ref="test_no_custom_rescue_service" negate="true"/>
+       {{%- endif -%}}
+     </criteria>
+   </definition>
+@@ -16,6 +20,8 @@
+     comment="Tests that
+     {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "rhcos4", "sle12", "sle15"] -%}}
+     /usr/lib/systemd/systemd-sulogin-shell
++    {{% elif product in ["openembedded"] -%}}
++    /usr/lib/systemd/systemd-sulogin-shell
+     {{%- else -%}}
+     /sbin/sulogin
+     {{%- endif %}}
+@@ -25,16 +31,22 @@
+     <ind:object object_ref="obj_require_rescue_service" />
+   </ind:textfilecontent54_test>
+   <ind:textfilecontent54_object id="obj_require_rescue_service" version="1">
++    {{%- if product in ["openembedded"] -%}}
++    <ind:filepath>/usr/lib/systemd/system/rescue.service</ind:filepath>
++    {{%- else -%}}
+     <ind:filepath>/usr/lib/systemd/system/rescue.service</ind:filepath>
++    {{%- endif -%}}
+     {{%- if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "rhcos4", "sle12", "sle15"] -%}}
+     <ind:pattern operation="pattern match">^ExecStart=\-.*/usr/lib/systemd/systemd-sulogin-shell[ ]+rescue</ind:pattern>
++    {{%- elif product in ["openembedded"] -%}}
++    <ind:pattern operation="pattern match">^ExecStart=\-.*/usr/lib/systemd/systemd-sulogin-shell[ ]+rescue</ind:pattern>
+     {{%- else -%}}
+     <ind:pattern operation="pattern match">^ExecStart=\-/bin/sh[\s]+-c[\s]+\"(/usr)?/sbin/sulogin;[\s]+/usr/bin/systemctl[\s]+--fail[\s]+--no-block[\s]+default\"</ind:pattern>
+     {{%- endif -%}}
+     <ind:instance datatype="int">1</ind:instance>
+   </ind:textfilecontent54_object>
+ 
+-  {{%- if product not in ["ol8", "rhel8"] -%}}
++  {{%- if product not in ["openembedded", "ol8", "rhel8"] -%}}
+   <ind:textfilecontent54_test check="all" check_existence="all_exist"
+     comment="Tests that the systemd rescue.service is in the runlevel1.target"
+     id="test_require_rescue_service_runlevel1" version="1">
+@@ -70,4 +82,41 @@
+     <unix:filename operation="pattern match">^runlevel1.target$</unix:filename>
+   </unix:file_object>
+   {{%- endif -%}}
++
++  {{%- if product in ["openembedded"] -%}}
++  <ind:textfilecontent54_test check="all" check_existence="all_exist"
++    comment="Tests that the systemd rescue.service is in the rescue.target"
++    id="test_require_rescue_service_rescue" version="1">
++    <ind:object object_ref="obj_require_rescue_service_rescue" />
++  </ind:textfilecontent54_test>
++  <ind:textfilecontent54_object id="obj_require_rescue_service_rescue" version="1">
++    <ind:filepath>/usr/lib/systemd/system/runlevel1.target</ind:filepath>
++    <ind:pattern operation="pattern match">^Requires=.*rescue\.service</ind:pattern>
++    <ind:instance datatype="int">1</ind:instance>
++  </ind:textfilecontent54_object>
++
++  <unix:file_test check="all" check_existence="at_least_one_exists"
++  comment="look for rescue.service in /etc/systemd/system"
++  id="test_no_custom_rescue_service" version="1">
++    <unix:object object_ref="object_no_custom_rescue_service" />
++  </unix:file_test>
++  <unix:file_object comment="look for rescue.service in /etc/systemd/system"
++  id="object_no_custom_rescue_service" version="1">
++    <unix:behaviors recurse="directories" recurse_direction="down" recurse_file_system="all" />
++    <unix:path operation="equals">/etc/systemd/system</unix:path>
++    <unix:filename operation="pattern match">^rescue.service$</unix:filename>
++  </unix:file_object>
++
++  <unix:file_test check="all" check_existence="at_least_one_exists"
++  comment="look for rescue.target in /etc/systemd/system"
++  id="test_no_custom_rescue_target" version="1">
++    <unix:object object_ref="object_no_custom_rescue_target" />
++  </unix:file_test>
++  <unix:file_object comment="look for rescue.target in /etc/systemd/system"
++  id="object_no_custom_rescue_target" version="1">
++    <unix:behaviors recurse="directories" recurse_direction="down" recurse_file_system="all" />
++    <unix:path operation="equals">/etc/systemd/system</unix:path>
++    <unix:filename operation="pattern match">^rescue.target$</unix:filename>
++  </unix:file_object>
++  {{%- endif -%}}
+ </def-group>
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/policy/stig/shared.yml b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/policy/stig/shared.yml
+index 710d5e947d..2c75052d5a 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/policy/stig/shared.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/policy/stig/shared.yml
+@@ -10,18 +10,30 @@ vuldiscussion: |-
+ checktext: |-
+     Verify that {{{ full_name }}} requires authentication for single-user mode with the following command:
+ 
++    {{% if "openembedded" in product %}}
++    $ grep sulogin /usr/lib/systemd/system/rescue.service
++
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
++    {{% else %}}
+     $ grep sulogin /usr/lib/systemd/system/rescue.service
+ 
+     ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
++    {{% endif %}}
+ 
+     If this line is not returned, or is commented out, this is a finding.
+ 
+ fixtext: |-
+     Configure {{{ full_name }}} to require authentication for single-user mode.
+ 
++    {{% if "openembedded" in product %}}
++    Add or modify the following line in the "/usr/lib/systemd/system/rescue.service" file:
++
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
++    {{% else %}}
+     Add or modify the following line in the "/usr/lib/systemd/system/rescue.service" file:
+ 
+     ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
++    {{% endif %}}
+ 
+ vuln_discussion: |-
+     To mitigate the risk of unauthorized access to sensitive information by entities that have been issued certificates by DOD-approved PKIs, all DOD systems (e.g., web servers and web portals) must be properly configured to incorporate access control methods that do not rely solely on the possession of a certificate for access. Successful authentication must not automatically give an entity access to an asset or security boundary. Authorization procedures and controls must be implemented to ensure each authenticated entity also has a validated and current authorization. Authorization is the process of determining whether an entity, once authenticated, is permitted to access a specific asset. Information systems use access control policies and enforcement mechanisms to implement this requirement.
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/rule.yml b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/rule.yml
+index 121c8f619c..f6e7367352 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/rule.yml
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/rule.yml
+@@ -9,7 +9,11 @@ description: |-
+     providing a boot option at startup.
+     <br /><br />
+     By default, single-user mode is protected by requiring a password and is set
++    {{% if "openembedded" in product %}}
++    in <tt>/usr/lib/systemd/system/rescue.service</tt>.
++    {{% else -%}}
+     in <tt>/usr/lib/systemd/system/rescue.service</tt>.
++    {{%- endif %}}
+ 
+ rationale: |-
+     This prevents attackers with physical access from trivially bypassing security
+@@ -53,7 +57,11 @@ ocil_clause: 'the output is different'
+ 
+ ocil: |-
+     To check if authentication is required for single-user mode, run the following command:
++    {{% if "openembedded" in product %}}
++    <pre>$ grep sulogin /usr/lib/systemd/system/rescue.service</pre>
++    {{% else -%}}
+     <pre>$ grep sulogin /usr/lib/systemd/system/rescue.service</pre>
++    {{%- endif %}}
+     The output should be similar to the following, and the line must begin with
+     {{% if product in ["fedora", "ol8", "ol9", "rhel8", "rhel9", "rhcos4"] -%}}
+         ExecStart and /usr/lib/systemd/systemd-sulogin-shell.
+@@ -61,21 +69,36 @@ ocil: |-
+     {{%- elif product in ["rhel7"] -%}}
+         ExecStart and /usr/sbin/sulogin.
+         <pre>ExecStart=-/bin/sh -c "/usr/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"</pre>
++    {{%- elif product in ["openembedded"] -%}}
++        ExecStart and /usr/lib/systemd/systemd-sulogin-shell.
++        <pre>ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue</pre>
+     {{%- else -%}}
+         ExecStart and /sbin/sulogin.
+         <pre>ExecStart=-/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"</pre>
+     {{%- endif %}}
+ 
+     {{% if product not in ["ol8", "rhel8"] %}}
++    {{% if product in ["openembedded"] -%}}
++    Then, verify that the rescue service is in the rescue.target.
++    Run the following command:
++    <pre>$ sudo grep "^Requires=.*rescue\.service" /usr/lib/systemd/system/rescue.target</pre>
++    {{%- else -%}}
+     Then, verify that the rescue service is in the runlevel1.target.
+     Run the following command:
+     <pre>$ sudo grep "^Requires=.*rescue\.service" /usr/lib/systemd/system/runlevel1.target</pre>
++    {{%- endif %}}
+     The output should be the following:
+     <pre>Requires=sysinit.target rescue.service</pre>
+ 
++    {{% if product in ["openembedded"] -%}}
++    Then, check if there is no custom rescue target configured in systemd configuration.
++    Run the following command:
++    <pre>$ sudo grep -r "^rescue.target$" /etc/systemd/system</pre>
++    {{%- else -%}}
+     Then, check if there is no custom runlevel1 target configured in systemd configuration.
+     Run the following command:
+     <pre>$ sudo grep -r "^runlevel1.target$" /etc/systemd/system</pre>
++    {{%- endif %}}
+     There should be no output.
+ 
+     Then, check if there is no custom rescue service configured in systemd configuration.
+@@ -92,6 +115,8 @@ fixtext: |-
+     ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
+     {{%- elif product in ["rhel7"] -%}}
+     ExecStart=-/bin/sh -c "/usr/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"
++    {{%- elif product in ["openembedded"] -%}}
++    ExecStart=-/usr/lib/systemd/systemd-sulogin-shell rescue
+     {{%- else -%}}
+     ExecStart=-/bin/sh -c "/sbin/sulogin; /usr/bin/systemctl --fail --no-block default"
+     {{%- endif %}}
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/correct_value.pass.sh b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/correct_value.pass.sh
+index fd13fbd1c8..8a159b57c8 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/correct_value.pass.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/correct_value.pass.sh
+@@ -1,8 +1,14 @@
+ #!/bin/bash
+-# platform = Oracle Linux 8,Oracle Linux 9,Red Hat Enterprise Linux 8,Red Hat Enterprise Linux 9,multi_platform_fedora
++# platform = OpenEmbedded, Oracle Linux 8,Oracle Linux 9,Red Hat Enterprise Linux 8,Red Hat Enterprise Linux 9,multi_platform_fedora
++
++{{%- if "openembedded" in product %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- else %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- endif %}}
+ 
+-service_file="/usr/lib/systemd/system/rescue.service"
+-sulogin="/usr/lib/systemd/systemd-sulogin-shell"
+ if grep "^ExecStart=.*" "$service_file" ; then
+     sed -i "s%^ExecStart=.*%ExecStart=-$sulogin rescue%" "$service_file"
+ else
+diff --git a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/wrong_value.fail.sh b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/wrong_value.fail.sh
+index 63b9b08b5a..c7eed844ac 100644
+--- a/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/wrong_value.fail.sh
++++ b/linux_os/guide/system/accounts/accounts-physical/require_singleuser_auth/tests/wrong_value.fail.sh
+@@ -1,8 +1,14 @@
+ #!/bin/bash
+ # platform = multi_platform_fedora,multi_platform_ol,multi_platform_rhel
+ 
+-service_file="/usr/lib/systemd/system/rescue.service"
+-sulogin="/bin/bash"
++{{%- if "openembedded" in product %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- else %}}
++service_file = "/usr/lib/systemd/system/emergency.service"
++sulogin = "/usr/lib/systemd/systemd-sulogin-shell"
++{{%- endif %}}
++
+ if grep "^ExecStart=.*" "$service_file" ; then
+     sed -i "s%^ExecStart=.*%ExecStart=-$sulogin rescue%" "$service_file"
+ else
+-- 
+2.25.1
+

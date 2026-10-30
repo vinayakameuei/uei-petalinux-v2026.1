@@ -1,0 +1,25 @@
+From 8a729b87c4919562bda34fd722892cef04a94c42 Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Thu, 10 Aug 2023 15:19:28 -0500
+Subject: [PATCH] ueiiDDS should not be confined by SELinux
+
+---
+ policy/modules/system/unconfined.fc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/policy/modules/system/unconfined.fc b/policy/modules/system/unconfined.fc
+index 075d51aa3..f8286dadc 100644
+--- a/policy/modules/system/unconfined.fc
++++ b/policy/modules/system/unconfined.fc
+@@ -6,6 +6,8 @@
+ /usr/bin/gnatls			--	gen_context(system_u:object_r:unconfined_execmem_exec_t,s0)
+ /usr/bin/gnatmake		--	gen_context(system_u:object_r:unconfined_execmem_exec_t,s0)
+ 
++/usr/bin/ueiiDDS 		--	gen_context(system_u:object_r:unconfined_execmem_exec_t,s0)
++
+ /usr/bin/valgrind 		--	gen_context(system_u:object_r:unconfined_execmem_exec_t,s0)
+ /usr/bin/vncserver		--	gen_context(system_u:object_r:unconfined_exec_t,s0)
+ 
+-- 
+2.25.1
+

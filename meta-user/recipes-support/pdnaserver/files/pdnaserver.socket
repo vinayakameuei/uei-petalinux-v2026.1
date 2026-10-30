@@ -1,0 +1,8 @@
+[Unit]
+Description=Pdnaserver service on port 6334
+
+[Socket]
+ListenDatagram=6334
+
+[Install]
+WantedBy=multi-user.target

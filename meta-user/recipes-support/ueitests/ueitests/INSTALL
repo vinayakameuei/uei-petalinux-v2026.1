@@ -1,0 +1,9 @@
+To install the ueitests package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueitests-<version>.tgz
+  cd ueitests-<version>
+  ./pkgupgrade.sh
+
+

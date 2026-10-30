@@ -1,0 +1,68 @@
+diff --git a/policy/modules/uei/metadata.xml b/policy/modules/uei/metadata.xml
+new file mode 100644
+index 000000000..da80ec076
+--- /dev/null
++++ b/policy/modules/uei/metadata.xml
+@@ -0,0 +1,3 @@
++<summary>
++	Policy modules for UEI.
++</summary>
+diff --git a/policy/modules/uei/uei_lvm_xperm.fc b/policy/modules/uei/uei_lvm_xperm.fc
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/policy/modules/uei/uei_lvm_xperm.if b/policy/modules/uei/uei_lvm_xperm.if
+new file mode 100644
+index 000000000..56328ae8b
+--- /dev/null
++++ b/policy/modules/uei/uei_lvm_xperm.if
+@@ -0,0 +1 @@
++## <summary>Extended perm for lvm_t</summary>
+diff --git a/policy/modules/uei/uei_lvm_xperm.te b/policy/modules/uei/uei_lvm_xperm.te
+new file mode 100644
+index 000000000..b18bf1838
+--- /dev/null
++++ b/policy/modules/uei/uei_lvm_xperm.te
+@@ -0,0 +1,13 @@
++
++policy_module(uei_lvm_xperm, 1.0)
++
++require {
++	type init_t;
++	type lvm_t;
++	type initrc_t;
++	class key search;
++}
++
++#============= lvm_t ==============
++allow lvm_t init_t:key search;
++allow lvm_t initrc_t:key search;
+diff --git a/policy/modules/uei/uei_tpm2_tss.fc b/policy/modules/uei/uei_tpm2_tss.fc
+new file mode 100644
+index 000000000..e69de29bb
+diff --git a/policy/modules/uei/uei_tpm2_tss.if b/policy/modules/uei/uei_tpm2_tss.if
+new file mode 100644
+index 000000000..c2c283e4a
+--- /dev/null
++++ b/policy/modules/uei/uei_tpm2_tss.if
+@@ -0,0 +1 @@
++## <summary>Extend perms for tpm2 tss</summary>
+diff --git a/policy/modules/uei/uei_tpm2_tss.te b/policy/modules/uei/uei_tpm2_tss.te
+new file mode 100644
+index 000000000..243edd2be
+--- /dev/null
++++ b/policy/modules/uei/uei_tpm2_tss.te
+@@ -0,0 +1,14 @@
++
++policy_module(uei_tpm2_tss, 1.0)
++
++require {
++        type initrc_t;
++        type system_dbusd_t;
++        class unix_stream_socket { read write };
++}
++
++#============= initrc_t ==============
++unconfined_dbus_send(initrc_t)
++
++#============= system_dbusd_t ==============
++allow system_dbusd_t initrc_t:unix_stream_socket { read write };

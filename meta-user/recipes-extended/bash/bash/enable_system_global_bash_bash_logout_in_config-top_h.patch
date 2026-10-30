@@ -1,0 +1,29 @@
+
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak@example.com>
+Date: Wed, 17 Jun 2026 15:00:00 +0530
+Subject: [PATCH] bash: enable system-wide bash_logout
+
+Enable support for system-wide /etc/bash.bash_logout by defining
+SYS_BASH_LOGOUT in config-top.h.
+
+Upstream-Status: Inappropriate [distribution-specific configuration]
+Signed-off-by: Vinayak Kulkarni <vinayak@example.com>
+
+---
+ config-top.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -Naurp bash-5.1.16/config-top.h bash-5.1.16.new/config-top.h
+--- bash-5.1.16/config-top.h    2023-01-18 14:15:36.865660295 -0600
++++ bash-5.1.16.new/config-top.h        2023-01-18 13:59:23.189805033 -0600
+@@ -94,7 +94,7 @@
+ /* #define SYS_BASHRC "/etc/bash.bashrc" */
+
+ /* System-wide .bash_logout for login shells. */
+-/* #define SYS_BASH_LOGOUT "/etc/bash.bash_logout" */
++#define SYS_BASH_LOGOUT "/etc/bash.bash_logout"
+
+ /* Define this to make non-interactive shells begun with argv[0][0] == '-'
+    run the startup files when not in posix mode. */
+

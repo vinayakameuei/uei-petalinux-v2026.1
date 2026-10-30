@@ -1,0 +1,59 @@
+From 0c079178a372370cf57413af7db0050b262e2436 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Wed, 8 Oct 2025 10:52:38 +0000
+Subject: [PATCH] Reset the USB PHY before a boot.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+
+diff --git a/cmd/usb.c b/cmd/usb.c
+index 13a2996c1f0..d740ad7859c 100644
+--- a/cmd/usb.c
++++ b/cmd/usb.c
+@@ -560,10 +560,41 @@ static int do_usbboot(struct cmd_tbl *cmdtp, int flag, int argc,
+ }
+ #endif /* CONFIG_USB_STORAGE */
+ 
++#include <asm/io.h>
++static void force_reset(void)
++{
++#define ZYNQ_GPIO_BASE  0xFF0A0000
++#define ZYNQ_GPIO_DATA_2_MSW  0x14
++#define ZYNQ_GPIO_DIRM_2      0x284
++#define ZYNQ_GPIO_OEN_2       0x288
++#define ZYNQ_MIO_76_BANK_PIN  0x01000000
++#define ZYNQ_MIO_76_SET_ZERO  0xFEFF0000
++#define ZYNQ_MIO_76_SET_ONE   0xFEFF0100
++#define ZYNQ_PHY_RESET_DLY_US 25            // It seems to take 2us to get to 0 on the 'scope.
++
++	u32 reg;
++	// set as output
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++	reg |= ZYNQ_MIO_76_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++
++	// Enable output.
++	reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++	reg |= ZYNQ_MIO_76_BANK_PIN;
++	writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++
++	// Toggle the line. Make sure it goes low for >1us
++	writel(ZYNQ_MIO_76_SET_ZERO, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++	udelay(ZYNQ_PHY_RESET_DLY_US); // at least 1 us
++	writel(ZYNQ_MIO_76_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++}
++
+ static void do_usb_start(void)
+ {
+ 	bootstage_mark_name(BOOTSTAGE_ID_USB_START, "usb_start");
+ 
++	force_reset();
++
+ 	if (usb_init() < 0)
+ 		return;
+ 
+-- 
+2.44.1
+

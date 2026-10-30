@@ -1,0 +1,29 @@
+From 496aa55aeefdba34af3db124efef6d4e3e247b59 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 10 Oct 2025 09:19:04 +0000
+Subject: [PATCH] Change pdnaserver listening port to end0 for v2025.1
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ pdnaserver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pdnaserver.c b/pdnaserver.c
+index a2750fe..fe3e332 100644
+--- a/pdnaserver.c
++++ b/pdnaserver.c
+@@ -93,7 +93,7 @@ typedef int SocketHandle;
+ #define BUF_SIZE 16384
+ 
+ #define DEF_DAQBIOS_PORT 6334
+-#define DEF_IFACE "eth0"
++#define DEF_IFACE "end0"
+ 
+ #define CERT_FILE "/etc/ssl/certs/pdnaserver_cert.pem"
+ #define PRIV_KEY_FILE "/etc/ssl/private/pdnaserver_priv_key.pem"
+-- 
+2.44.1
+

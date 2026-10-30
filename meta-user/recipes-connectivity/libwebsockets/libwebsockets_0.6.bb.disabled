@@ -1,0 +1,33 @@
+SUMMARY = "Canonical libwebsockets.org websocket library"
+HOMEPAGE = "https://libwebsockets.org/"
+LICENSE = "LGPL-2.1"
+LIC_FILES_CHKSUM = "file://COPYING;md5=61f09cdf23516e5d800fbe04ee57c137"
+
+inherit autotools
+DEPENDS = "zlib openssl openssl-native"
+
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}-${PV}:"
+
+#SRC_URI = "file://${PN}-release-${PV}.tar.gz"
+SRC_URI = "https://github.com/warmcat/libwebsockets/archive/release-0.6.tar.gz \
+		file://do_compile_fix.patch \
+"
+
+#SRC_URI[md5sum] = "6e5c3ce75e48357371ab392b5b619e79"
+#SRC_URI[sha256sum] = "aa07e99ac7a205161e7498c9e3c29d53e10b32ff99a740d6b09bac2d0b783b02"
+SRC_URI[md5sum] = "ebaf52b97a44197e126c60afc85b2d3b"
+SRC_URI[sha256sum] = "f1aac9f093bd206cacc0ceea77412aef512d2fa2d3fe6d126a947f38c7b36b7d"
+
+S = "${WORKDIR}/${PN}-release-${PV}"
+B = "${S}"
+
+PACKAGES =+ "${PN}-testapps"
+
+FILES_${PN}-testapps += "${datadir}/libwebsockets-test-server/*"
+
+do_install:append() {
+    chown -R root:root ${D}${datadir}/libwebsockets-test-server/*
+}
+
+# The autotools configuration I am basing this on seems to have a problem with a race condition when parallel make is enabled
+PARALLEL_MAKE = ""

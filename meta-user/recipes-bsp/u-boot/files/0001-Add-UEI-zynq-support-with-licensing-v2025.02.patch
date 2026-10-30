@@ -1,0 +1,1616 @@
+From 07dad4505f230b20f1e56420ad9f37a94f6f9b6d Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Tue, 6 Jan 2026 10:06:58 +0000
+Subject: [PATCH] Add UEI zynq support with licensing v2025.02
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm/mach-zynqmp/Makefile         |   4 +
+ arch/arm/mach-zynqmp/dqdef.h          | 293 +++++++++++++++++
+ arch/arm/mach-zynqmp/pdna-zynqmp.c    | 258 +++++++++++++++
+ arch/arm/mach-zynqmp/si5338_regs.h    | 442 ++++++++++++++++++++++++++
+ arch/arm/mach-zynqmp/uei-board-info.c | 101 ++++++
+ arch/arm/mach-zynqmp/uei-license.c    | 120 +++++++
+ arch/arm/mach-zynqmp/uei-license.h    |  19 ++
+ arch/arm/mach-zynqmp/uei-tsn.c        | 129 ++++++++
+ arch/arm/mach-zynqmp/uei-tsn.h        |  20 ++
+ arch/arm/mach-zynqmp/uei-zynqmp.h     |  14 +
+ board/xilinx/zynqmp/zynqmp.c          |   4 +-
+ drivers/net/phy/xilinx_gmii2rgmii.c   |   5 +-
+ include/configs/xilinx_zynqmp.h       |  51 ++-
+ 13 files changed, 1452 insertions(+), 8 deletions(-)
+ create mode 100644 arch/arm/mach-zynqmp/dqdef.h
+ create mode 100644 arch/arm/mach-zynqmp/pdna-zynqmp.c
+ create mode 100644 arch/arm/mach-zynqmp/si5338_regs.h
+ create mode 100644 arch/arm/mach-zynqmp/uei-board-info.c
+ create mode 100644 arch/arm/mach-zynqmp/uei-license.c
+ create mode 100644 arch/arm/mach-zynqmp/uei-license.h
+ create mode 100644 arch/arm/mach-zynqmp/uei-tsn.c
+ create mode 100644 arch/arm/mach-zynqmp/uei-tsn.h
+ create mode 100644 arch/arm/mach-zynqmp/uei-zynqmp.h
+
+diff --git a/arch/arm/mach-zynqmp/Makefile b/arch/arm/mach-zynqmp/Makefile
+index ff426044797..658895e5e18 100644
+--- a/arch/arm/mach-zynqmp/Makefile
++++ b/arch/arm/mach-zynqmp/Makefile
+@@ -11,4 +11,8 @@ obj-$(CONFIG_$(XPL_)ZYNQMP_PSU_INIT_ENABLED)	+= psu_spl_init.o
+ 
+ ifndef CONFIG_XPL_BUILD
+ obj-$(CONFIG_CMD_ZYNQMP) += zynqmp.o
++obj-y += pdna-zynqmp.o
++obj-y += uei-board-info.o
++obj-y += uei-license.o
++obj-y += uei-tsn.o
+ endif # !CONFIG_XPL_BUILD
+diff --git a/arch/arm/mach-zynqmp/dqdef.h b/arch/arm/mach-zynqmp/dqdef.h
+new file mode 100644
+index 00000000000..274d0426658
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/dqdef.h
+@@ -0,0 +1,293 @@
++/* This is DaqBIOS firmware header file
++//
++// Rev. 0.1     11/28/01     AI -- initial version
++// Rev. 0.3     01/21/02     AI -- CC removed, SA added
++//
++// -------------------------------------------------------------
++// (C) UEI, Inc. 2002. All right reserved
++*/
++
++
++#ifndef _DQDEFS_H
++#define _DQDEFS_H
++
++#if defined(_WIN32) || defined(__GNUC__)
++#pragma pack(1)
++#else
++#pragma options align=packed
++#endif
++
++#define OPTION_LOGGER    0x00800400
++#define OPTION_LINUX     (1L << 20)
++#define OPTION_SIMULINK  (1L << 0)
++#define OPTION_TSN       (1L << 1)
++#define OPTION_TPM       (1L << 2)
++#define OPTION_SECURITY  (1L << 3)
++#define OPTION_IDDS      (1L << 4)
++#define OPTION_VISTAS    (1L << 5)
++#define OPTION_MODBUS    (1L << 6)
++#define OPTION_OPCUA     (1L << 8)
++
++#define LICENSE_MASK    (0x7F7F7F7F)
++
++
++
++typedef unsigned char           uint8;
++typedef unsigned short          uint16;
++typedef unsigned int            uint32;
++typedef unsigned long long      uint64;
++
++#define BUS_FREQUENCY (66000000U)
++
++#define MAX_LINE 80
++#define MAX_FILE 512
++#define MAX_FN  128
++#define MAX_ARGS 8
++
++#define MSPERIOD 10
++#define DATABUF_SIZE  (4*256*1024) /* 1MW of 32-bit DWORDs */
++
++#define STACKSZ (64*1024)
++
++#ifndef max
++#define max(x,y) (((x)>(y))?(x):(y))
++#endif
++
++#ifndef min
++#define min(x,y) (((x)<(y))?(x):(y))
++#endif
++
++#ifndef abs
++#define abs(x) (((x)>0)?(x):(-(x)))
++#endif
++
++#ifndef abs_f
++#define abs_f(x) (((x)>0)?(x):(-(x)))
++#endif
++
++#ifndef clamp
++#define clamp(x,low,high)  (((x)<(low))?(low):(((x)>(high))?(high):(x)))
++#endif
++
++#ifndef round_int
++#define round_int(x)    (((x) >= 0) ? (int)((x) + 0.5):(int)((x) - 0.5))
++#endif
++
++#define SSZ 16
++
++#define UDP_PORT        6334
++#define UDP_PORT_ASYNC  6344
++#define UDP_PORT_ASYNC_OFFS (UDP_PORT_ASYNC - UDP_PORT)
++
++
++/* --------------------------------------------------------------------
++    Channel list is a small program to control DQ FSMs
++*/
++typedef struct {
++    unsigned int  Action;       /* what to do with that entry */
++
++    uint8   dst[6];       /* IOM MAC */
++    uint32  dqCommand;    /* associated DaqBIOS command */
++    uint32  dqTStamp;     /* timestamp */
++    uint32  dqValue;      /* value is any */
++
++    uint32 *pInData;      /* pointer to input data CC<-IOM */
++    uint32  InDataSz;     /* size of input data */
++    uint32 *pOutData;     /* pointer to output data CC->IOM */
++    uint32  OutDataSz;    /* size of output data */
++    uint32  Next;         /* next entry (index) */
++
++} DQRQ;
++
++/********************************************************************
++    Parameters are stored in SA1 of the flash
++ ********************************************************************/
++// <WRITE file=powerdna.h action=add>
++
++#define DQ_DEVNAME_SIZE             (40)
++#define DQ_CLSZ                     (0x40)
++#define DQ_CFG_RECORD_SIZE          (0x2000)    /* our parameters can be as big as 8kB */
++
++#define DQ_MAX_FRAGMENTS            (8)         // maximum number of fragments for RT VMAP/DMAP = 11832 bytes UDP payload
++#define DQ_MAX_PAYLOAD_FRAG         (DQ_MAX_UDP_SIZE_100*DQ_MAX_FRAGMENTS)
++#define DQ_MIN_PAYLOAD_FRAG         (2*sizeof(uint16))  // just two control words
++
++#define CC_CSOR6 0xFFFF0030 /* op reg for CC */
++#define CC_CSBR6 0xA0000000 /* base reg for CC */
++#define IOM_CSOR 0xFFFF0000 /* op reg for IOM */
++#define IOM_CSBR 0xA0000000 /* base reg for IOM */
++
++
++
++/* --------------------------------------------------------------------
++    DQ parameters
++*/
++#if defined(__aarch64__)
++#define DQ_ETH_PORTS        3   // Three Ethernet ports for ZynqMP CPU
++#else
++#define DQ_ETH_PORTS        2   // Two Ethernet ports for IMX6SX CPU
++#endif
++
++// <WRITE file=powerdna_private.h action=add>
++
++#define DQ_COMTYPE_RAW     1
++#define DQ_COMTYPE_UDP     2
++
++#define DQ_MODE_PWRUP  1     /* device just powered-up */
++#define DQ_MODE_TEST   2     /* device is in self-test mode */
++#define DQ_MODE_READY  4     /* device completed self-initialization */
++#define DQ_MODE_INIT   8     /* device initialized from CC */
++#define DQ_MODE_OPS    16    /* device is in operation */
++
++typedef struct {
++    unsigned int mode;
++} DQ_DEVSTATE;
++
++/* runtype selection */
++#define TYPE_IOM    0x2   // IOM "slave" mode
++#define TYPE_AUTO   0x4   // move into operation mode
++#define TYPE_SA     0x8   // stand-alone mode
++#define TYPE_DL     0x10  // data logger enabled
++#define TYPE_PAC    0x20  // IOM is configured as a UEIPAC running Linux
++#define TYPE_MODBUS 0x24  // IOM is configured as a UEIModbus
++#define TYPE_SIMU   0x28  // IOM is configured as a UEISim
++#define TYPE_VXPAC  0x2C  // IOM is configured as a UEIPAC running VxWorks
++
++/* main Dq interface: Eth, UART0, IrDA or USB */
++#define PORT_ETH    0
++#define PORT_UART   1
++#define PORT_IRDA   2
++#define PORT_USB    3
++
++// Defalut port speed, 0 mean auto-negotiate
++// Settings are independent for NIC1 and NIC 2
++#define PORT_NIC1_100F      0x1
++#define PORT_NIC1_1000F     0x2
++#define PORT_NIC1_100H      0x5
++#define PORT_NIC1_1000H     0x6
++
++#define PORT_NIC2_100F      0x8
++#define PORT_NIC2_1000F     0x10
++#define PORT_NIC2_100H      0x28
++#define PORT_NIC2_1000H     0x30
++
++#define PORT_NIC1_MASK      0x7
++#define PORT_NIC2_MASK      0x38
++
++#define PORT_FORCE_RESET    0x80    // force reset on the selected type of port
++
++
++/* protocol type to support: DqTS, DqTS+DqVT, Dq->TCP/IP, Dq->USB */
++#define PROT_DQTS   0
++//#define PROT_DQVT   1
++//#define PROT_TCPIP  2
++//#define PROT_USB    3
++
++/* R/W list and its size to store in the Flash */
++#define DQRDWRLST uint32
++#define RWLSTSIZE 256
++
++/* Maximum size of signature area used to store license code for UEILogger, UEIPAC etc... */
++#define DQSIGSIZE   28
++
++// <\WRITE>
++
++#define PORT_SYNC_USE_PTP   (1<<0)
++#define PORT_SYNC_USE_NTP   (1<<1)
++
++// DQPARAM paramters - specific for IOM and located in SA1 (Flash)
++typedef struct {
++
++    /* FWCT parameters */
++    unsigned char   autorun;   /* 0 - wait for command, 1 - autorun */
++    unsigned char   runtype;   /* 0 - IOM, 1 - IOM autoinit, 2 - standalone */
++    unsigned char   portnum;   /* main Dq interface: Eth, UART0, IrDA or USB */
++    unsigned char   protocol;  /* protocol type to support: DqTS, DqTS+DqVT, Dq->TCP/IP, Dq->USB */
++
++    /* OS time settings */
++    unsigned int    cycletime; /* length of one OS time slice in us, 500us, 1, 2, 5, 10ms */
++    unsigned int    optfield;  /* option bit field */
++
++    /* Parameters of high-res timer (0) */
++    unsigned int    watchdog;  /* watchdog delay in ms; 0 - disabled */
++
++    /* Device information */
++    unsigned short  id;         /* model number */
++    unsigned short  option;     /* options */
++    unsigned int    sernum;     /* serial number */
++    unsigned int    mfgdate;    /* manufacturing date */
++    char            devname[32]; /* symbolic name of the device */
++    unsigned short  palstate;   /* state of the PAL register - LED, WD */
++    unsigned int    caldate;    /* calibration date */
++
++    /* RD/WR list for all devices */
++    DQRDWRLST       rdwrlst[RWLSTSIZE]; /* read/write list entries */
++
++} DQPARAM, *pDQPARAM;
++
++
++/* -------------------------------------------------------------------- */
++/* PID control */
++#define MAXTASKS    64
++#define MAXLOOPS    16
++#define MAXTEMP     1000
++
++
++/* Timer period info */
++#define TIMER_NETWORK_PERIOD    1000000000/0xFFFF   /* 1 sec / max timeout */
++#define TIMER_FREQ      BUS_FREQUENCY  /* 66 MHz so far :-) */
++#define TIMER_TRRREG    500       /* 15.1515... ns @ 66MHz */
++#define TIMER_PRESCALER 165
++#define TIMER_16TO1     1
++
++/* -------------------------------------------------------------------- */
++/* Structure definition for the Parameters stored in Flash */
++typedef struct {
++/* these are definitions from Motorola dBUG */
++    unsigned int    baud;       /* baud rate of the board */
++    unsigned char   mac[6];     /* ethernet hardware address (hwa) */
++    unsigned char   client[4];  /* board IP address */
++    unsigned char   server[4];  /* network download/upload host IP address */
++    unsigned char   gateway[4]; /* gateway IP address */
++    unsigned char   netmask[4]; /* netmask address */
++    unsigned char   netcfg[4];  /* network download config */
++    unsigned char   mac2[6];     /* ethernet hardware address (hwa) */
++    unsigned char   client2[4];  /* board IP address */
++    unsigned char   server2[4];  /* network download/upload host IP address */
++    unsigned char   gateway2[4]; /* gateway IP address */
++    unsigned char   netmask2[4]; /* netmask address */
++#if defined(__aarch64__)
++    unsigned char   mac3[6];     /* ethernet hardware address (hwa) */
++    unsigned char   client3[4];  /* board IP address */
++    unsigned char   server3[4];  /* network download/upload host IP address */
++    unsigned char   gateway3[4]; /* gateway IP address */
++    unsigned char   netmask3[4]; /* netmask address */
++#endif
++    char devname[DQ_DEVNAME_SIZE]; /* IOM name */
++/* these are firmware loader parameters */
++    unsigned char   fwgo;       /* 0 - boot to dBUG */
++    unsigned char   fwgo1;      /* additional control bit */
++    unsigned int    fwaddr;     /* address of user code in Flash */
++    unsigned int    fwsize;     /* size of user code */
++    unsigned int    fwcopy;     /* address to copy user code into RAM */
++    unsigned int    fwstart;    /* start address for the user code in RAM */
++    unsigned char   signature[DQSIGSIZE]; /* digital signature for secure comm (\0 is not included)*/
++    unsigned int    password;   /* password enabling bits */
++    uint16          udpport;    /* port for Dq over UDP/IP */
++/* these are DaqBIOS operation parameters */
++    DQPARAM         dq;         /* DQ parameters */
++    uint16          dummy;
++
++    /* CRC is always the last entry into PARAM structure */
++    uint32          CRC;
++} PARAM;
++
++/* -------------------------------------------------------------------- */
++#define MINIMUM_XPARAM_VERSION    1
++#define MINIMUM_XPARAM_SIZEAVAIL  2
++#define CURRENT_XPARAM_VERSION    2
++
++#define XPARAM_VERSION1_SIZE      (28)
++#define XPARAM_SIZE_MASK          (0x800-1)  /* max 2k protect against uninitiated and corruption */
++
++#endif
+\ No newline at end of file
+diff --git a/arch/arm/mach-zynqmp/pdna-zynqmp.c b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+new file mode 100644
+index 00000000000..5dcc48c5469
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+@@ -0,0 +1,258 @@
++#include <command.h>
++#include <env.h>
++#include <init.h>
++#include <malloc.h>
++#include <dm/device.h>
++#include <dm/uclass.h>
++#include <spi.h>
++#include <spi_flash.h>
++#include <i2c.h>
++#include <timestamp.h>
++#include <version.h>
++#include <version_string.h>
++#include "si5338_regs.h"
++#include "xilinx.h"
++#include "fpga.h"
++#include "uei-zynqmp.h"
++#include "uei-tsn.h"
++#include "uei-license.h"
++
++#define QSPI0_BASE             (0x8000000)
++#define PDNA_ENV_OFFSET        (0x01e20000)
++
++//SI5338 programmed in FSBL
++#if 0
++static void i2c_program_si5338(void){
++       struct udevice *bus, *dev;
++       ofnode i2c_node;
++       int ret;
++       int count = 0;
++       uint si5338_addr = 0x70;
++       uint bus_speed = 400000; //400khz
++       uint8_t curr_val, clear_curr_val, clear_new_val, combined;
++       uint i;
++       Reg_Data curr;
++
++       //get i2c bus
++       ret = uclass_get_device_by_seq(UCLASS_I2C, 0, &bus);
++       printf("Retrieved bus of %s\n", bus->name);
++       ret = dm_i2c_probe(bus, si5338_addr, 0, &dev);
++       if( ret < 0 ){
++               printf("Failed probing for SI5338\n");
++               return;
++       }
++       printf("Retrieved device of %s\n", dev->name);
++       dm_i2c_set_bus_speed(bus, bus_speed);
++
++    //dm_i2c_reg_write(struct udevice *dev, uint offset, uint value)
++       ret = dm_i2c_reg_write(dev, 230, 0x10);
++       ret = dm_i2c_reg_write(dev, 241, 0xE5);
++
++       //loop through all registers of SI5338
++       for(i=0; i<NUM_REGS_MAX; i++){
++               curr = Reg_Store[i];
++               if(curr.Reg_Mask != 0x00){
++                       if(curr.Reg_Mask == 0xFF){
++                               //only do a write transaction
++                               //since mask is all ones
++                               ret = dm_i2c_reg_write(dev, curr.Reg_Addr, curr.Reg_Val);
++                       }else{
++                               //do a read-modify write
++                               curr_val = dm_i2c_reg_read(dev, curr.Reg_Addr);
++                               clear_curr_val = curr_val & ~curr.Reg_Mask;
++                               clear_new_val = curr.Reg_Val & curr.Reg_Mask;
++                               combined = clear_new_val | clear_curr_val;
++                               ret = dm_i2c_reg_write(dev, curr.Reg_Addr, combined);
++                       }
++               }
++       }//end iterating through SI5338 registers
++
++       // check LOS alarm for the xtal input
++       // on IN1 and IN2 (and IN3 if necessary) -
++       // change this mask if using inputs on IN4, IN5, IN6
++       printf("Waiting on input clock lock\n");
++       curr_val = dm_i2c_reg_read(dev, 218) & LOS_MASK;
++       while(curr_val !=0 && count < 30){
++               printf("Waiting on input clock lock\n");
++               curr_val = dm_i2c_reg_read(dev, 218) & LOS_MASK;
++               count++;
++       }
++       curr_val = dm_i2c_reg_read(dev, 49);
++       ret = dm_i2c_reg_write(dev, 49, curr_val & 0x7f);  //FCAL_OVRD_EN = 0
++       ret = dm_i2c_reg_write(dev, 246, 2); //soft reset
++       ret = dm_i2c_reg_write(dev, 241, 0x65); //DIS_LOL = 0
++
++       //need to sleep for ~20ms after soft reset
++       mdelay(25);
++
++       //make sure the device locked by checking PLL_LOL and SYS_CAL
++       curr_val = dm_i2c_reg_read(dev, 218) & LOCK_MASK;
++       while (curr_val != 0 && count < 30){
++               printf("Waiting for lock after soft reset\n");
++               curr_val = dm_i2c_reg_read(dev, 218) & LOCK_MASK;
++               count++;
++       }
++
++       //copy FCAL values
++       ret = dm_i2c_reg_write(dev, 45, dm_i2c_reg_read(dev, 235));
++       ret = dm_i2c_reg_write(dev, 46, dm_i2c_reg_read(dev, 236));
++       // clear bits 0 and 1 from 47 and
++       // combine with bits 0 and 1 from 237
++       curr_val = (dm_i2c_reg_read(dev, 47) & 0xFC) | (dm_i2c_reg_read(dev,237) & 3);
++       ret = dm_i2c_reg_write(dev, 47, curr_val);
++
++       curr_val = dm_i2c_reg_read(dev, 49) | 0x80;
++       ret = dm_i2c_reg_write(dev, 49, curr_val); //FCAL_OVRD_END = 1
++       ret = dm_i2c_reg_write(dev, 230, 0x0);    //OEB_ALL = 0
++
++}
++#endif
++
++static void uboot_env_set(void){
++       char enetaddr[18], enet1addr[18], enet2addr[18];
++       u8 en[6], en1[6], en2[6];
++       char ramsize[8], flashsz[8];
++       int i;
++       int ret = 0;
++       struct udevice *new;
++       static struct spi_flash *env_flash;
++       PARAM pram;
++       int unset = 1;
++       const fpga_desc *desc;
++       xilinx_desc *zynq_desc;
++       u32 options = 0;
++
++       //Get FPGA type, always dev0
++       desc = fpga_get_desc(0);
++       zynq_desc = (xilinx_desc*)desc->devdesc;
++       memset(&pram, 0, sizeof(PARAM));
++       /* speed and mode will be read from DT */
++       ret = spi_flash_probe_bus_cs(CONFIG_ENV_SPI_BUS, CONFIG_ENV_SPI_CS,
++                                    &new);
++       if (ret) {
++               env_set_default("spi_flash_probe_bus_cs() failed", 0);
++               return;
++       }
++
++       env_flash = dev_get_uclass_priv(new);
++       spi_flash_read(env_flash, PDNA_ENV_OFFSET, sizeof(PARAM), &pram);
++
++/* Set endaddr and end1addr */
++       for (i = 0; i < 6; i++) {
++               en[i] = pram.mac[i];
++               en1[i] = pram.mac2[i];
++               en2[i] = pram.mac3[i];
++               //printf("mac = %02x  mac1 = %02x  mac2 = %02x\n", en[i], en1[i], en2[i]);
++       }
++
++       //do a real check of mac address. First octets should be 00:0C:94
++       if(en[0] == 00 && en[1] == 0x0C && en[2] == 0x94) unset = 0;
++
++       if(!env_get("ethaddr")){
++               if(unset) {en[0] = 0; en[1] = 0x0c; en[2] = 0x94; en[3] = 0xf0; en[4] = 0xf0; en[5] = 0xf0;}
++               sprintf(enetaddr, "%02x:%02x:%02x:%02x:%02x:%02x",
++                       en[0], en[1], en[2], en[3], en[4], en[5]);
++               env_set("ethaddr", enetaddr);
++               //printf("Net:  ethaddr = %s\n", enetaddr);
++       }
++       if(!env_get("eth1addr")){
++               if(unset) {en1[0] = 0; en1[1] = 0x0c; en1[2] = 0x94; en1[3] = 0xf0; en1[4] = 0xf0; en1[5] = 0xf1;}
++               sprintf(enet1addr, "%02x:%02x:%02x:%02x:%02x:%02x",
++                       en1[0], en1[1], en1[2], en1[3], en1[4], en1[5]);
++               env_set("eth1addr", enet1addr);
++               //printf("Net:  eth1addr = %s\n", enet1addr);
++       }else{
++               printf("Default environment set\n");
++       }
++       if(!env_get("eth2addr")){
++               if(unset) {en2[0] = 0; en2[1] = 0x0c; en2[2] = 0x94; en2[3] = 0xf0; en2[4] = 0xf0; en2[5] = 0x13;}
++               sprintf(enet2addr, "%02x:%02x:%02x:%02x:%02x:%02x",
++                       en2[0], en2[1], en2[2], en2[3], en2[4], en2[5]);
++               env_set("eth2addr", enet2addr);
++               //printf("Net:  ethaddr = %s\n", enet2addr);
++       }
++
++       //set up the device_type if not set (This is FPGA for 3EG vs 4EG)
++       if(!env_get("device_type")){
++	       printf("Device Type: %s\n", zynq_desc->name);
++               env_set("device_type", zynq_desc->name);
++       }
++
++       //Work with the license to see if we can use TSN
++       get_option_from_license(&options, &pram);
++
++   printf("UEI License: ");
++       if(license_valid(&pram)){
++               printf("%s\n", pram.signature);
++       }else{
++               printf("Serial Number mismatch!!!\n");
++       }
++
++       //Set device tree based on FPGA type
++       if(!env_get("fdt_file")){
++               if(!strcmp(zynq_desc->name, "zu4ev")){
++                       if((is_tsn_available() != -1)) {
++                               //now check license is set correctly
++                               if (license_valid(&pram) && (options & OPTION_TSN)){
++                                       env_set("fdt_file", "system-top-4ev-tsn.dtb");
++                               }else{
++                                       printf("TSN Found but invalid License!\n");
++                                       env_set("fdt_file", "system-top-4ev.dtb");
++                               }
++                       }else {
++                               env_set("fdt_file", "system-top-4ev.dtb");
++                       }
++               }else{
++                       if((is_tsn_available() != -1)) {
++                               //now check license is set correctly
++                               if (license_valid(&pram) && (options & OPTION_TSN)){
++                                       env_set("fdt_file", "system-top-tsn.dtb");
++                               }else{
++                                       printf("TSN Found but invalid License!\n");
++                                       env_set("fdt_file", "system.dtb");
++                               }
++                       }else {
++                               env_set("fdt_file", "system.dtb");
++                       }
++               }
++       }
++
++       sprintf(ramsize, "%08lx", (unsigned long int)gd->ram_size);
++       env_set("ramsize", ramsize);
++       sprintf(flashsz, "%08lx", (unsigned long int)0x8000000); //hardcode 128MB
++       env_set("flashsz", flashsz);
++       /* set version variable */
++       env_set("ver", U_BOOT_VERSION " (" U_BOOT_DATE " - " U_BOOT_TIME ")");
++
++       spi_flash_free(env_flash);
++}
++
++
++void tsn_init(void){
++       u32 mac,val1, val2;
++       if(is_tsn_available() != -1){
++               mac = env_get("ethaddr");
++               if(mac == NULL){
++                       //set some default MAC to address this, doesn't matter what
++                       val1 = 0x33b76330;
++                       val2 = 0x00007672;
++
++               }else{
++                       convert_mac_to_u32(mac, &val1, &val2);
++               }
++               *(u32*)TSN_MAC_REG1 = val1;
++               *(u32*)TSN_MAC_REG2 = val2;
++               *(u32*)TSN_MAC_CTRL_REG = TSN_MAC_SET; //set MAC is set correctly
++               *(u32*)TSN_CFG_MODE_REG = 0; //set to NON mode
++               *(u32*)TSN_CFG_CTRL_REG = TSN_CFG_SET;
++               *(u32*)TSN_ENABLE_REG = TSN_ENABLE;
++       }
++}
++
++int pdna_zynqmp_late_init(void){
++
++    uboot_env_set();
++    //i2c_program_si5338();
++
++    return 0;
++}
+diff --git a/arch/arm/mach-zynqmp/si5338_regs.h b/arch/arm/mach-zynqmp/si5338_regs.h
+new file mode 100644
+index 00000000000..f4ae27f0bdd
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/si5338_regs.h
+@@ -0,0 +1,442 @@
++//Register map for use with AN428 (JumpStart)
++//http://www.silabs.com/clocks
++//#BEGIN_HEADER
++//Date = Friday, March 26, 2021 3:58 PM
++//File version = 3
++//Software Name = ClockBuilder Pro
++//Software version = 3.1.0.0
++//Software date = 1 18, 2021
++//Chip = Si533x
++//Part Number = Si533x
++//#END_HEADER
++//Input Frequency (MHz) = 25.000000000
++//Input Type = LVDS_LVPECL_HCSL
++//P1 = 1
++//Input Mux = RefClk
++//FDBK Input Frequency (MHz) = 25.000000000
++//FDBK Input Type = OFF
++//P2 = 1
++//FDBK Mux = NoClk
++//PFD Input Frequency (MHz) = 25.000000000
++//VCO Frequency (GHz) = 2.700000
++//N = 108  (108.0000)
++//Internal feedback enabled
++//Output Clock 0
++// Output Frequency (MHz) = 100.000000000
++// Mux Selection = IDn
++// MultiSynth = 27  (27.0000)
++// R = 1
++//Output Clock 1
++// Output is off
++//Output Clock 2
++// Output Frequency (MHz) = 100.000000000
++// Mux Selection = IDn
++// MultiSynth = 27  (27.0000)
++// R = 1
++//Output Clock 3
++// Output Frequency (MHz) = 27.000000000
++// Mux Selection = IDn
++// MultiSynth = 100  (100.0000)
++// R = 1
++//Driver 0
++// Enabled
++// Powered on
++// Output voltage = 3.30
++// Output type = 3.3V LVDS
++// Output state when disabled = StopLow
++//Driver 1
++// Disabled
++// Powered off
++// Output voltage = 3.30
++// Output type = 3.3V LVDS
++// Output state when disabled = StopLow
++//Driver 2
++// Enabled
++// Powered on
++// Output voltage = 3.30
++// Output type = 3.3V LVDS
++// Output state when disabled = StopLow
++//Driver 3
++// Enabled
++// Powered on
++// Output voltage = 3.30
++// Output type = 3.3V LVDS
++// Output state when disabled = StopLow
++//Clock 0 phase inc/dec step size (ns) = 0.000
++//Clock 1 phase inc/dec step size (ns) = 0.000
++//Clock 2 phase inc/dec step size (ns) = 0.000
++//Clock 3 phase inc/dec step size (ns) = 0.000
++//Phase increment and decrement pin control is off
++//Frequency increment and decrement pin control is off
++//Frequency increment and decrement is disabled
++//Initial phase offset 0 (ns) = 0.000
++//Initial phase offset 1 (ns) = 0.000
++//Initial phase offset 2 (ns) = 0.000
++//Initial phase offset 3 (ns) = 0.000
++//SSC is disabled
++#ifndef _SI5338_REGS_H_
++#define _SI5338_REGS_H_
++
++#define LOCK_MASK 0x15
++#define LOS_MASK 0x04
++
++#define NUM_REGS_MAX 350
++
++typedef struct Reg_Data{
++   unsigned char Reg_Addr;
++   unsigned char Reg_Val;
++   unsigned char Reg_Mask;
++} Reg_Data;
++
++const Reg_Data Reg_Store[NUM_REGS_MAX] = {
++{  0,0x00,0x00},
++{  1,0x00,0x00},
++{  2,0x00,0x00},
++{  3,0x00,0x00},
++{  4,0x00,0x00},
++{  5,0x00,0x00},
++{  6,0x08,0x1D},
++{  7,0x00,0x00},
++{  8,0x70,0x00},
++{  9,0x0F,0x00},
++{ 10,0x00,0x00},
++{ 11,0x00,0x00},
++{ 12,0x00,0x00},
++{ 13,0x00,0x00},
++{ 14,0x00,0x00},
++{ 15,0x00,0x00},
++{ 16,0x00,0x00},
++{ 17,0x00,0x00},
++{ 18,0x00,0x00},
++{ 19,0x00,0x00},
++{ 20,0x00,0x00},
++{ 21,0x00,0x00},
++{ 22,0x00,0x00},
++{ 23,0x00,0x00},
++{ 24,0x00,0x00},
++{ 25,0x00,0x00},
++{ 26,0x00,0x00},
++{ 27,0x70,0x80},
++{ 28,0x03,0xFF},
++{ 29,0x00,0xFF},
++{ 30,0xB0,0xFF},
++{ 31,0xC0,0xFF},
++{ 32,0xE3,0xFF},
++{ 33,0xC0,0xFF},
++{ 34,0xC0,0xFF},
++{ 35,0x00,0xFF},
++{ 36,0x06,0x1F},
++{ 37,0x00,0x1F},
++{ 38,0x06,0x1F},
++{ 39,0x06,0x1F},
++{ 40,0x63,0xFF},
++{ 41,0x0C,0x7F},
++{ 42,0x23,0x3F},
++{ 43,0x00,0x00},
++{ 44,0x00,0x00},
++{ 45,0x00,0xFF},
++{ 46,0x00,0xFF},
++{ 47,0x14,0x3F},
++{ 48,0x32,0xFF},
++{ 49,0x00,0xFF},
++{ 50,0xC3,0xFF},
++{ 51,0x07,0xFF},
++{ 52,0x10,0xFF},
++{ 53,0x80,0xFF},
++{ 54,0x0B,0xFF},
++{ 55,0x00,0xFF},
++{ 56,0x00,0xFF},
++{ 57,0x00,0xFF},
++{ 58,0x00,0xFF},
++{ 59,0x01,0xFF},
++{ 60,0x00,0xFF},
++{ 61,0x00,0xFF},
++{ 62,0x00,0x3F},
++{ 63,0x10,0xFF},
++{ 64,0x00,0xFF},
++{ 65,0x00,0xFF},
++{ 66,0x00,0xFF},
++{ 67,0x00,0xFF},
++{ 68,0x00,0xFF},
++{ 69,0x00,0xFF},
++{ 70,0x00,0xFF},
++{ 71,0x00,0xFF},
++{ 72,0x00,0xFF},
++{ 73,0x00,0x3F},
++{ 74,0x10,0xFF},
++{ 75,0x80,0xFF},
++{ 76,0x0B,0xFF},
++{ 77,0x00,0xFF},
++{ 78,0x00,0xFF},
++{ 79,0x00,0xFF},
++{ 80,0x00,0xFF},
++{ 81,0x01,0xFF},
++{ 82,0x00,0xFF},
++{ 83,0x00,0xFF},
++{ 84,0x00,0x3F},
++{ 85,0x10,0xFF},
++{ 86,0x00,0xFF},
++{ 87,0x30,0xFF},
++{ 88,0x00,0xFF},
++{ 89,0x00,0xFF},
++{ 90,0x00,0xFF},
++{ 91,0x00,0xFF},
++{ 92,0x01,0xFF},
++{ 93,0x00,0xFF},
++{ 94,0x00,0xFF},
++{ 95,0x00,0x3F},
++{ 96,0x10,0x00},
++{ 97,0x00,0xFF},
++{ 98,0x34,0xFF},
++{ 99,0x00,0xFF},
++{100,0x00,0xFF},
++{101,0x00,0xFF},
++{102,0x00,0xFF},
++{103,0x01,0xFF},
++{104,0x00,0xFF},
++{105,0x00,0xFF},
++{106,0x80,0xBF},
++{107,0x00,0xFF},
++{108,0x00,0xFF},
++{109,0x00,0xFF},
++{110,0x40,0xFF},
++{111,0x00,0xFF},
++{112,0x00,0xFF},
++{113,0x00,0xFF},
++{114,0x40,0xFF},
++{115,0x00,0xFF},
++{116,0x80,0xFF},
++{117,0x00,0xFF},
++{118,0x40,0xFF},
++{119,0x00,0xFF},
++{120,0x00,0xFF},
++{121,0x00,0xFF},
++{122,0x40,0xFF},
++{123,0x00,0xFF},
++{124,0x00,0xFF},
++{125,0x00,0xFF},
++{126,0x00,0xFF},
++{127,0x00,0xFF},
++{128,0x00,0xFF},
++{129,0x00,0x0F},
++{130,0x00,0x0F},
++{131,0x00,0xFF},
++{132,0x00,0xFF},
++{133,0x00,0xFF},
++{134,0x00,0xFF},
++{135,0x00,0xFF},
++{136,0x00,0xFF},
++{137,0x00,0xFF},
++{138,0x00,0xFF},
++{139,0x00,0xFF},
++{140,0x00,0xFF},
++{141,0x00,0xFF},
++{142,0x00,0xFF},
++{143,0x00,0xFF},
++{144,0x00,0xFF},
++{145,0x00,0x00},
++{146,0xFF,0x00},
++{147,0x00,0x00},
++{148,0x00,0x00},
++{149,0x00,0x00},
++{150,0x00,0x00},
++{151,0x00,0x00},
++{152,0x00,0xFF},
++{153,0x00,0xFF},
++{154,0x00,0xFF},
++{155,0x00,0xFF},
++{156,0x00,0xFF},
++{157,0x00,0xFF},
++{158,0x00,0x0F},
++{159,0x00,0x0F},
++{160,0x00,0xFF},
++{161,0x00,0xFF},
++{162,0x00,0xFF},
++{163,0x00,0xFF},
++{164,0x00,0xFF},
++{165,0x00,0xFF},
++{166,0x00,0xFF},
++{167,0x00,0xFF},
++{168,0x00,0xFF},
++{169,0x00,0xFF},
++{170,0x00,0xFF},
++{171,0x00,0xFF},
++{172,0x00,0xFF},
++{173,0x00,0xFF},
++{174,0x00,0xFF},
++{175,0x00,0xFF},
++{176,0x00,0xFF},
++{177,0x00,0xFF},
++{178,0x00,0xFF},
++{179,0x00,0xFF},
++{180,0x00,0xFF},
++{181,0x00,0x0F},
++{182,0x00,0xFF},
++{183,0x00,0xFF},
++{184,0x00,0xFF},
++{185,0x00,0xFF},
++{186,0x00,0xFF},
++{187,0x00,0xFF},
++{188,0x00,0xFF},
++{189,0x00,0xFF},
++{190,0x00,0xFF},
++{191,0x00,0xFF},
++{192,0x00,0xFF},
++{193,0x00,0xFF},
++{194,0x00,0xFF},
++{195,0x00,0xFF},
++{196,0x00,0xFF},
++{197,0x00,0xFF},
++{198,0x00,0xFF},
++{199,0x00,0xFF},
++{200,0x00,0xFF},
++{201,0x00,0xFF},
++{202,0x00,0xFF},
++{203,0x00,0x0F},
++{204,0x00,0xFF},
++{205,0x00,0xFF},
++{206,0x00,0xFF},
++{207,0x00,0xFF},
++{208,0x00,0xFF},
++{209,0x00,0xFF},
++{210,0x00,0xFF},
++{211,0x00,0xFF},
++{212,0x00,0xFF},
++{213,0x00,0xFF},
++{214,0x00,0xFF},
++{215,0x00,0xFF},
++{216,0x00,0xFF},
++{217,0x00,0xFF},
++{218,0x00,0x00},
++{219,0x00,0x00},
++{220,0x00,0x00},
++{221,0x0D,0x00},
++{222,0x00,0x00},
++{223,0x00,0x00},
++{224,0xF4,0x00},
++{225,0xF0,0x00},
++{226,0x00,0x00},
++{227,0x00,0x00},
++{228,0x00,0x00},
++{229,0x00,0x00},
++{231,0x00,0x00},
++{232,0x00,0x00},
++{233,0x00,0x00},
++{234,0x00,0x00},
++{235,0x00,0x00},
++{236,0x00,0x00},
++{237,0x00,0x00},
++{238,0x14,0x00},
++{239,0x00,0x00},
++{240,0x00,0x00},
++{242,0x02,0x02},
++{243,0xF0,0x00},
++{244,0x00,0x00},
++{245,0x00,0x00},
++{247,0x00,0x00},
++{248,0x00,0x00},
++{249,0xA8,0x00},
++{250,0x00,0x00},
++{251,0x84,0x00},
++{252,0x00,0x00},
++{253,0x00,0x00},
++{254,0x00,0x00},
++{255, 1, 0xFF}, // set page bit to 1
++{  0,0x00,0x00},
++{  1,0x00,0x00},
++{  2,0x00,0x00},
++{  3,0x00,0x00},
++{  4,0x00,0x00},
++{  5,0x00,0x00},
++{  6,0x00,0x00},
++{  7,0x00,0x00},
++{  8,0x00,0x00},
++{  9,0x00,0x00},
++{ 10,0x00,0x00},
++{ 11,0x00,0x00},
++{ 12,0x00,0x00},
++{ 13,0x00,0x00},
++{ 14,0x00,0x00},
++{ 15,0x00,0x00},
++{ 16,0x00,0x00},
++{ 17,0x01,0x00},
++{ 18,0x00,0x00},
++{ 19,0x00,0x00},
++{ 20,0x90,0x00},
++{ 21,0x31,0x00},
++{ 22,0x00,0x00},
++{ 23,0x00,0x00},
++{ 24,0x01,0x00},
++{ 25,0x00,0x00},
++{ 26,0x00,0x00},
++{ 27,0x00,0x00},
++{ 28,0x00,0x00},
++{ 29,0x00,0x00},
++{ 30,0x00,0x00},
++{ 31,0x00,0xFF},
++{ 32,0x00,0xFF},
++{ 33,0x01,0xFF},
++{ 34,0x00,0xFF},
++{ 35,0x00,0xFF},
++{ 36,0x90,0xFF},
++{ 37,0x31,0xFF},
++{ 38,0x00,0xFF},
++{ 39,0x00,0xFF},
++{ 40,0x01,0xFF},
++{ 41,0x00,0xFF},
++{ 42,0x00,0xFF},
++{ 43,0x00,0x0F},
++{ 44,0x00,0x00},
++{ 45,0x00,0x00},
++{ 46,0x00,0x00},
++{ 47,0x00,0xFF},
++{ 48,0x00,0xFF},
++{ 49,0x01,0xFF},
++{ 50,0x00,0xFF},
++{ 51,0x00,0xFF},
++{ 52,0x90,0xFF},
++{ 53,0x31,0xFF},
++{ 54,0x00,0xFF},
++{ 55,0x00,0xFF},
++{ 56,0x01,0xFF},
++{ 57,0x00,0xFF},
++{ 58,0x00,0xFF},
++{ 59,0x00,0x0F},
++{ 60,0x00,0x00},
++{ 61,0x00,0x00},
++{ 62,0x00,0x00},
++{ 63,0x00,0xFF},
++{ 64,0x00,0xFF},
++{ 65,0x01,0xFF},
++{ 66,0x00,0xFF},
++{ 67,0x00,0xFF},
++{ 68,0x90,0xFF},
++{ 69,0x31,0xFF},
++{ 70,0x00,0xFF},
++{ 71,0x00,0xFF},
++{ 72,0x01,0xFF},
++{ 73,0x00,0xFF},
++{ 74,0x00,0xFF},
++{ 75,0x00,0x0F},
++{ 76,0x00,0x00},
++{ 77,0x00,0x00},
++{ 78,0x00,0x00},
++{ 79,0x00,0xFF},
++{ 80,0x00,0xFF},
++{ 81,0x00,0xFF},
++{ 82,0x00,0xFF},
++{ 83,0x00,0xFF},
++{ 84,0x90,0xFF},
++{ 85,0x31,0xFF},
++{ 86,0x00,0xFF},
++{ 87,0x00,0xFF},
++{ 88,0x01,0xFF},
++{ 89,0x00,0xFF},
++{ 90,0x00,0xFF},
++{ 91,0x00,0x0F},
++{ 92,0x00,0x00},
++{ 93,0x00,0x00},
++{ 94,0x00,0x00},
++{255, 0, 0xFF} }; // set page bit to 0
++//End of file
++#endif /*_SI5338_REGS_H_*/
+\ No newline at end of file
+diff --git a/arch/arm/mach-zynqmp/uei-board-info.c b/arch/arm/mach-zynqmp/uei-board-info.c
+new file mode 100644
+index 00000000000..e157b53cfee
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-board-info.c
+@@ -0,0 +1,101 @@
++/*
++ * uei-board-info.c Uboot command to get UEI Board Info
++ *
++ * Maintainer: Austyn Turner <aturner@ueidaq.com>
++ *
++ * Copyright (C) 2023 United Electronic Industries, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <errno.h>
++#include <dm.h>
++#include <command.h>
++#include <env.h>
++#include <zynqpl.h>
++#include "fpga.h"
++#include "zynqpl.h"
++
++
++#define BASE_ADDR       (0xA00E0000)
++#define DQL_CLI_LID     (0x0008)
++#define DQL_CLI_NISV    (0x000C)
++
++
++static int is_tpm_supported(void);
++static int is_tsn_supported(void);
++static int is_security_supported(void);
++static int do_get_board_info(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[]);
++
++static int is_tpm_supported(void){
++    //source from get_tpm in tpm-common.c
++    int rc;
++    struct udevice *devp;
++
++       rc = uclass_first_device_err(UCLASS_TPM, &devp);
++       if (rc) {
++               printf("Could not find TPM (ret=%d)\n", rc);
++               return 0;
++       }
++
++       return 1;
++}
++
++//For Zynq, currently TSN is only supported on 4E modules
++static int is_tsn_supported(void){
++    int ret = 0;
++    char* dev_type = env_get("device_type");
++    if(dev_type){
++        if(!strcmp(dev_type, "zu4ev") || !strcmp(dev_type, "zu4eg")){
++            ret = 1;
++        }
++    }
++    return ret;
++}
++
++static int is_security_supported(void){
++    return 1;
++}
++
++//Board info will print the following:
++//CPU Logic ID
++//CPU Logic Version
++//CPU Serial Number - stored in qspi, more work to find this
++//TPM Support
++//TSN Support
++//Security Support
++
++static int do_get_board_info(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[]){
++    int ret = 1;
++    unsigned short logicID;
++    u32 logicVer;
++
++    logicID = (unsigned short)*((u32*)(BASE_ADDR+DQL_CLI_LID));
++    logicVer = (u32)*((u32*)(BASE_ADDR+DQL_CLI_NISV)) & 0xFFFFFF;
++
++    printf("CPU Logic ID: %02x\n", logicID);
++    printf("CPU Logic Ver: %06x\n", logicVer);
++    printf("TPM Support:%d\n", is_tpm_supported());
++    printf("TSN Support: %d\n", is_tsn_supported());
++    printf("Security Support: %d\n", is_security_supported());
++
++
++    return ret;
++};
++
++U_BOOT_CMD(
++       get_board_info, 1, 0, do_get_board_info,
++       "UEI Board Info", "args: [start]"
++);
+diff --git a/arch/arm/mach-zynqmp/uei-license.c b/arch/arm/mach-zynqmp/uei-license.c
+new file mode 100644
+index 00000000000..54b6a801939
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-license.c
+@@ -0,0 +1,120 @@
++#include <command.h>
++#include <spi.h>
++#include <spi_flash.h>
++#include "uei-license.h"
++#include "uei-zynqmp.h"
++
++int FindT(int a, int m, int n)
++{
++    int r;
++    int y = 1;
++
++    while (m > 0)
++    {
++        r = m % 2;
++        FastExponention(r, n, &y, &a);
++        m = m / 2;
++    }
++    return y;
++}
++
++int FastExponention(int bit, int n, int* y, int* a)
++{
++    if (bit == 1) {
++        *y = (*y * (*a)) % n;
++    }
++
++    *a = (*a) * (*a) % n;
++
++    return *a;
++}
++
++int Encryption(int value, int e, int n)
++{
++    int cipher;
++    cipher = FindT(value, e, n);
++    return cipher;
++}
++
++int Decryption(int value, int d, int n)
++{
++    int decipher;
++    decipher = FindT(value, d, n);
++    return decipher;
++}
++
++
++uint32 DecryptUint32(uint32 value) {
++    int i=0;
++    uint32 tmp = 0;
++    uint32 ret = 0;
++    //go through each byte decrypt
++    for(i=0; i<sizeof(uint32); i++)
++    {
++        tmp = (value >> (8*i)) & 0xFF;
++        ret |= ((Decryption(tmp, ENCRYPT_D, ENCRYPT_N) & 0xFF) << (8*i));
++    }
++    return ret;
++}
++
++int license_valid(PARAM* pram) {
++
++    if(check_sernum_valid(pram) != 1) {
++        printf("Invalid serial number!\n");
++        return 0;
++    }
++
++    return 1;
++}
++
++void get_option_from_license(uint32* options, PARAM* pram) {
++    uint32 tmp1;
++    char shadow_license[9];
++    int i=0;
++    const char* license = (const char*)pram->signature;
++    //clear out options
++    *options = 0;
++
++    if(strlen(license) >= 16) {
++        for(i=0; i<8; i++) {
++            //need to copy license otherwise converting to long takes in all characters
++            shadow_license[i] = license[i+8];
++        }
++        shadow_license[8] = '\0';
++        tmp1 = simple_strtol(shadow_license, NULL, 16);
++        *options = DecryptUint32(tmp1);
++    }
++}
++
++int check_sernum_valid(PARAM* pram) {
++    int ret = 1;
++    uint32 tmp1,tmp2;
++    char shadow_license[9];
++    int i=0;
++    const char* license = (const char*)pram->signature;
++
++    //validate that decrypted serial number matches encrypted
++    //check length in case license hasn't been set, needs to be at least 8
++    if(strlen(license) >= 8) {
++        for(i=0; i<8; i++) {
++            //need to copy license otherwise converting to long takes in all characters
++            shadow_license[i] = license[i];
++        }
++        shadow_license[8] = '\0';
++        tmp1 = simple_strtol(shadow_license, NULL, 16);
++        tmp2 = DecryptUint32(tmp1);
++        if((tmp2 & LICENSE_MASK) != (pram->dq.sernum & LICENSE_MASK)){
++#ifdef DEBUG_NOPRINT
++            printf("License param 0x%08x doesn't match license 0x%08x\n", pram->dq.sernum, tmp2);
++#endif
++            ret = 0;
++        }
++    }else{
++        //if license isn't set, then it can't be valid
++#ifdef DEBUG_NOPRINT
++        printf("License likely not set\n");
++#endif
++        ret = 0;
++    }
++    return ret;
++}
+diff --git a/arch/arm/mach-zynqmp/uei-license.h b/arch/arm/mach-zynqmp/uei-license.h
+new file mode 100644
+index 00000000000..2e854393d8f
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-license.h
+@@ -0,0 +1,19 @@
++#ifndef _UEI_LICENSE_H_
++#define _UEI_LICENSE_H_
++#include "dqdef.h"
++
++#define ENCRYPT_N   247
++#define ENCRYPT_D   211
++
++int FindT(int a, int m, int n);
++int FastExponention(int bit, int n, int* y, int* a);
++int Encryption(int value, int e, int n);
++int Decryption(int value, int d, int n);
++uint32 EncryptUint32(uint32 value);
++uint32 DecryptUint32(uint32 value);
++
++int license_valid(PARAM* pram);
++void get_option_from_license(uint32* options, PARAM* pram);
++int check_sernum_valid(PARAM* pram);
++
++#endif //_UEI_LICENSE_H_
+diff --git a/arch/arm/mach-zynqmp/uei-tsn.c b/arch/arm/mach-zynqmp/uei-tsn.c
+new file mode 100644
+index 00000000000..444d03a65fe
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-tsn.c
+@@ -0,0 +1,129 @@
++/*
++* uei-tsn.c Command to Initialize TSN IP in UEI Zynq
++*
++* Maintainer: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
++*
++* Copyright (C) 2025 United Electronic Industries, Inc.
++*
++* This program is free software; you can redistribute it and/or modify
++* it under the terms of the GNU General Public License as published by
++* the Free Software Foundation; either version 2 of the License, or
++* (at your option) any later version.
++*
++* This program is distributed in the hope that it will be useful,
++* but WITHOUT ANY WARRANTY; without even the implied warranty of
++* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++* GNU General Public License for more details.
++*
++* You should have received a copy of the GNU General Public License
++* along with this program; if not, write to the Free Software
++* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++#include <command.h>
++#include <linux/types.h>
++#include <env.h>
++#include <hexdump.h>
++#include <malloc.h>
++#include <mapmem.h>
++#include <linux/ctype.h>
++#include <asm/cache.h>
++#include <asm/global_data.h>
++#include <linux/libfdt.h>
++#include "uei-tsn.h"
++
++DECLARE_GLOBAL_DATA_PTR;
++
++// Helper function to convert a single hex character to its integer value
++static int hex_to_int(char c) {
++    if (c >= '0' && c <= '9') {
++        return c - '0';
++    } else if (c >= 'a' && c <= 'f') {
++        return c - 'a' + 10;
++    } else if (c >= 'A' && c <= 'F') {
++        return c - 'A' + 10;
++    }
++    return -1; // Invalid hex character
++}
++
++// Correctly converts a MAC address string to two 32-bit registers
++void convert_mac_to_u32(const char *mac_str, u32 *reg1, u32 *reg2) {
++    int i, j;
++    u8 mac_bytes[6];
++
++    // The MAC string is "HH:HH:HH:HH:HH:HH" (17 characters)
++    if (strlen(mac_str) != 17) {
++        printf("TSN: Invalid MAC address string length: %s\n", mac_str);
++        return;
++    }
++
++    // Parse the MAC string into a 6-byte array
++    j = 0;
++    for (i = 0; i < 17; i += 3) {
++        int nibble1 = hex_to_int(mac_str[i]);
++        int nibble2 = hex_to_int(mac_str[i+1]);
++
++        if (nibble1 == -1 || nibble2 == -1) {
++            printf("TSN: Invalid hex character in MAC address: %s\n", mac_str);
++            return;
++        }
++        mac_bytes[j++] = (nibble1 << 4) | nibble2;
++    }
++
++    // Pack the 6 bytes into two 32-bit registers.
++    // The specific register layout depends on the hardware.
++    // This example assumes reg1 gets the first 4 bytes (MSB) and reg2 gets the last 2 bytes.
++    *reg1 = (mac_bytes[0] << 24) | (mac_bytes[1] << 16) |
++            (mac_bytes[2] << 8)  | mac_bytes[3];
++    *reg2 = (mac_bytes[4] << 16) | mac_bytes[5];
++}
++
++// if tsn node is found, this returns some offset value, otherwise it will return -1
++int is_tsn_available() {
++    return fdt_node_offset_by_compatible(gd->fdt_blob, 0, "xlnx,ntl-red-tsn-1.0");
++}
++
++// initialize and enable TSN params with most basic settings
++static int do_tsn_init(struct cmd_tbl *cmdtp, int flag, int argc, char * const argv[]) {
++    u32 val1, val2;
++    const char *mac;
++
++    // Don't do anything if tsn isn't available
++    if (is_tsn_available() == -1) {
++        debug("TSN: No compatible device tree node found for 'xlnx,ntl-red-tsn-1.0'\n");
++        return 0;
++    }
++
++    mac = env_get("ethaddr");
++    if (mac == NULL) {
++        printf("TSN: No 'ethaddr' found in U-Boot environment. Using default MAC.\n");
++        val1 = 0x33b76330;
++        val2 = 0x00007672;
++    } else {
++        convert_mac_to_u32(mac, &val1, &val2);
++        if (val1 == 0 && val2 == 0) {
++            printf("TSN: MAC address conversion failed. Using default MAC.\n");
++            val1 = 0x33b76330;
++            val2 = 0x00007672;
++        }
++    }
++
++    // Write MAC address to registers
++    *(u32*)TSN_MAC_REG1 = val1;
++    *(u32*)TSN_MAC_REG2 = val2;
++    *(u32*)TSN_MAC_CTRL_REG = TSN_MAC_SET; // set MAC is set correctly
++
++    // Configure and enable TSN
++    *(u32*)TSN_CFG_MODE_REG = 0; // set to NON mode
++    *(u32*)TSN_CFG_CTRL_REG = TSN_CFG_SET;
++    *(u32*)TSN_ENABLE_REG = TSN_ENABLE;
++
++    printf("TSN: Initialized with MAC address %s\n", mac ? mac : "default");
++
++    return 0; // Return 0 for success in U-Boot commands
++}
++
++U_BOOT_CMD(
++       tsn_init, 1, 0, do_tsn_init,
++       "UEI TSN IP Initialization", "args: [start]"
++);
+\ No newline at end of file
+diff --git a/arch/arm/mach-zynqmp/uei-tsn.h b/arch/arm/mach-zynqmp/uei-tsn.h
+new file mode 100644
+index 00000000000..5632bdce966
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-tsn.h
+@@ -0,0 +1,20 @@
++#ifndef _UEI_TSN_H_
++#define _UEI_TSN_H_
++
++#define TSN_ENABLE_REG              (0xB0000000)
++#define TSN_MAC_CTRL_REG            (0xB0000100)
++#define TSN_MAC_REG1                (0xB0000104)
++#define TSN_MAC_REG2                (0xB0000108)
++#define TSN_CFG_CTRL_REG            (0xB0000080)
++#define TSN_CFG_MODE_REG            (0xB0000084)
++#define TSN_CFG_VLAN_REG            (0xB0000088)
++
++#define TSN_MAC_SET                 (1L << 0)
++#define VLAN_DISABLED               (0)
++#define VLAN_SET                    (1L << 1)
++#define TSN_CFG_SET                 (1L << 0)
++#define TSN_ENABLE                  (1L << 0)
++
++int is_tsn_available(void);
++void convert_mac_to_u32(const char *mac_str, u32 *reg1, u32 *reg2);
++#endif
+diff --git a/arch/arm/mach-zynqmp/uei-zynqmp.h b/arch/arm/mach-zynqmp/uei-zynqmp.h
+new file mode 100644
+index 00000000000..f8ba70ff2f7
+--- /dev/null
++++ b/arch/arm/mach-zynqmp/uei-zynqmp.h
+@@ -0,0 +1,14 @@
++/* 
++ * Copyright (C) 2021 United Electronic Industries, Inc.
++ *
++ * Author: Austyn Turner <aturner@ueidaq.com>
++ *
++ * SPDX-License-Identifier:    GPL-2.0+
++ */
++
++#ifndef _UEI_ZYNQMP_H_
++#define _UEI_ZYNQMP_H_
++
++int pdna_zynqmp_late_init(void);
++
++#endif /*_UEI_ZYNQMP_H_*/
+diff --git a/board/xilinx/zynqmp/zynqmp.c b/board/xilinx/zynqmp/zynqmp.c
+index d07979f0dd3..40ec51fd2d4 100644
+--- a/board/xilinx/zynqmp/zynqmp.c
++++ b/board/xilinx/zynqmp/zynqmp.c
+@@ -525,7 +525,7 @@ int board_late_init(void)
+ #if defined(CONFIG_USB_ETHER) && !defined(CONFIG_USB_GADGET_DOWNLOAD)
+ 	usb_ether_init();
+ #endif
+-
++	pdna_zynqmp_late_init();
+ 	multiboot = multi_boot();
+ 	if (multiboot >= 0)
+ 		env_set_hex("multiboot", multiboot);
+@@ -556,7 +556,7 @@ int board_late_init(void)
+ 
+ int checkboard(void)
+ {
+-	puts("Board: Xilinx ZynqMP\n");
++	puts("Board: Xilinx ZynqMP UEI\n");
+ 	return 0;
+ }
+ 
+diff --git a/drivers/net/phy/xilinx_gmii2rgmii.c b/drivers/net/phy/xilinx_gmii2rgmii.c
+index e44b7b75bd5..16451ff01ee 100644
+--- a/drivers/net/phy/xilinx_gmii2rgmii.c
++++ b/drivers/net/phy/xilinx_gmii2rgmii.c
+@@ -50,8 +50,9 @@ static int xilinxgmiitorgmii_config(struct phy_device *phydev)
+ 	ext_phydev->interface = ofnode_read_phy_mode(node);
+ 	if (ext_phydev->interface == PHY_INTERFACE_MODE_NA) {
+ 		ext_phydev->interface = PHY_INTERFACE_MODE_RGMII;
+-	} else if (!phy_interface_is_rgmii(ext_phydev)) {
+-		printf("Incorrect external interface type\n");
++	} else if (ext_phydev->interface < PHY_INTERFACE_MODE_RGMII ||
++	           ext_phydev->interface > PHY_INTERFACE_MODE_RGMII_TXID) {
++		printf("Incorrect external PHY interface type\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/include/configs/xilinx_zynqmp.h b/include/configs/xilinx_zynqmp.h
+index 13941ba3589..de5677e2133 100644
+--- a/include/configs/xilinx_zynqmp.h
++++ b/include/configs/xilinx_zynqmp.h
+@@ -42,8 +42,10 @@
+ # define PARTS_DEFAULT
+ #endif
+ 
+-/* Ethernet driver */
++#define CONFIG_IPADDR 192.168.100.22
++#define CONFIG_SERVERIP 192.168.100.224
+ 
++/* Ethernet driver */
+ #define ENV_MEM_LAYOUT_SETTINGS \
+ 	"fdt_addr_r=0x40000000\0" \
+ 	"fdt_size_r=0x400000\0" \
+@@ -175,14 +177,55 @@
+ # define BOOTENV
+ #endif /* CONFIG_DISTRO_DEFAULTS */
+ 
++/* UEI logic */
+ /* Initial environment variables */
+ #ifndef CFG_EXTRA_ENV_SETTINGS
+ #define CFG_EXTRA_ENV_SETTINGS \
+-	ENV_MEM_LAYOUT_SETTINGS \
+-	"usb_pgood_delay=1000\0" \
+-	BOOTENV
++       "fdt_addr=0x100000\0"\
++       "console=ttyPS0\0"\
++       "baudrate=57600\0"\
++       "uboot_part=0x1E20000\0"\
++       "ramdisk_addr=0x4000000\0"\
++       "loadaddr=0x2000000\0"\
++       "image=Image\0"\
++       "ipaddr=192.168.100.22\0"\
++       "boot_image=booti ${loadaddr} ${ramdisk_addr} ${fdt_addr}\0"\
++       "run_tftpb=tftpboot ${loadaddr} Image;tftpboot ${ramdisk_addr} rootfs.cpio.gz.u-boot;run boot_image\0"\
++       "tftp_boot_args=setenv bootargs ${quietargs} console=${console},${baudrate}\0"\
++       "tftp_boot_qspi=run tftp_boot_args;tftpboot ${loadaddr} ${image};tftpboot ${ramdisk_addr} rootfs.cpio.gz.u-boot;tftpboot ${fdt_addr} system.dtb;run boot_image\0"\
++       "mmcargs=setenv bootargs ${quietargs} console=${console},${baudrate} root=${mmcroot} rw\0"\
++       "mmcroot=/dev/mmcblk0p2 rootwait rw\0"\
++       "mmcloadfdt=fatload mmc ${mmcdev}:${mmcpart} ${fdt_addr} ${fdt_file}\0"\
++       "mmcloadimage=fatload mmc ${mmcdev}:${mmcpart} ${loadaddr} ${image}\0"\
++       "mmcpart=1\0"\
++       "mmcdev=0\0"\
++       "mmcboot=run mmcargs;run mmcloadimage;run mmcloadfdt;booti ${loadaddr} - ${fdt_addr}\0"\
++       "quietargs=quiet loglevel=2\0"\
++       "qspi_file=QSPI_BOOT.BIN\0"\
++       "get_qspi_tftp=tftpboot ${loadaddr} ${qspi_file}\0"\
++       "get_qspi_usb=usb reset;fatload usb ${usbdev}:${usbpart} ${loadaddr} ${qspi_file}\0"\
++       "flash_qspi=sf probe;sf erase 0 ${uboot_part};sf write ${loadaddr} 0 ${filesize}\0"\
++       "supports_license=1\0"\
++       "usbargs=setenv bootargs console=${console},${baudrate} root=${usbroot} rootwait rw\0"\
++       "usbboot=run usbargs;run usbloadimage;run usbloadfdt;booti ${loadaddr} - ${fdt_addr}\0"\
++       "usbdev=0\0"\
++       "usbloadfdt=fatload usb ${usbdev}:${usbpart} ${fdt_addr} ${fdt_file}\0"\
++       "usbloadimage=fatload usb ${usbdev}:${usbpart} ${loadaddr} ${image}\0"\
++       "usbpart=1\0"\
++       "usbroot=/dev/sda2\0"
+ #endif
+ 
++#define CONFIG_BOOTCOMMAND \
++       "usb reset; run mmcboot"
++
++#if defined(CONFIG_SPL_SPI_FLASH_SUPPORT)
++# define CONFIG_SYS_SPI_KERNEL_OFFS    0x80000
++# define CONFIG_SYS_SPI_ARGS_OFFS      0xa0000
++# define CONFIG_SYS_SPI_ARGS_SIZE      0xa0000
++#endif
++
++/* UEI logic */
++
+ /* SPL can't handle all huge variables - define just DFU */
+ #if defined(CONFIG_XPL_BUILD) && defined(CONFIG_SPL_DFU)
+ #undef CFG_EXTRA_ENV_SETTINGS
+-- 
+2.44.4
+

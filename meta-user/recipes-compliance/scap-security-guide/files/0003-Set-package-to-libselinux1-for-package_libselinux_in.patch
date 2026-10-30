@@ -1,0 +1,57 @@
+From 56133c9255e7223634d33addfbd6e12b7423cb30 Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Thu, 23 May 2024 19:34:41 -0500
+Subject: [PATCH] Set package to libselinux1 for package_libselinux_installed
+ rule
+
+---
+ components/selinux.yml                                    | 2 +-
+ .../system/selinux/package_libselinux_installed/rule.yml  | 8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/components/selinux.yml b/components/selinux.yml
+index c42ca8ad6c..c8782f535c 100644
+--- a/components/selinux.yml
++++ b/components/selinux.yml
+@@ -3,7 +3,7 @@ groups:
+ - selinux-booleans
+ name: selinux
+ packages:
+-- libselinux
++- libselinux1
+ - policycoreutils
+ - policycoreutils-python-utils
+ - selinux
+diff --git a/linux_os/guide/system/selinux/package_libselinux_installed/rule.yml b/linux_os/guide/system/selinux/package_libselinux_installed/rule.yml
+index 5c470d72fd..cab0d1e73c 100644
+--- a/linux_os/guide/system/selinux/package_libselinux_installed/rule.yml
++++ b/linux_os/guide/system/selinux/package_libselinux_installed/rule.yml
+@@ -4,13 +4,13 @@ documentation_complete: true
+ title: 'Install libselinux Package'
+ 
+ description: |-
+-    {{{ describe_package_install(package="libselinux") }}}
++    {{{ describe_package_install(package="libselinux1") }}}
+ 
+ rationale: |-
+     Security-enhanced Linux is a feature of the Linux kernel and a number of utilities
+     with enhanced security functionality designed to add mandatory access controls to Linux.
+ 
+-    The <tt>libselinux</tt> package contains the core library of the Security-enhanced Linux system.
++    The <tt>libselinux1</tt> package contains the core library of the Security-enhanced Linux system.
+ 
+ severity: high
+ 
+@@ -23,10 +23,10 @@ identifiers:
+ 
+ ocil_clause: 'the package is not installed'
+ 
+-ocil: '{{{ ocil_package(package="libselinux") }}}'
++ocil: '{{{ ocil_package(package="libselinux1") }}}'
+ 
+ template:
+     name: package_installed
+     vars:
+-        pkgname: libselinux
++        pkgname: libselinux1
+         pkgname@sle15: libselinux1

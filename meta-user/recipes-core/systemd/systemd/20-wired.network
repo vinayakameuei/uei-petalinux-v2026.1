@@ -1,0 +1,10 @@
+[Match]
+Name=end0
+
+[Network]
+Address=192.168.100.2/24
+Gateway=192.168.100.1
+
+# Uncomment line below to set DNS server
+# Restart systemd, "systemctl restart systemd-networkd"
+#DNS=

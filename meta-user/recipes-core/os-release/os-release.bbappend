@@ -1,0 +1,8 @@
+NAME = "UEI PetaLinux"
+#VERSION = "${DISTRO_VERSION}${@' (%s)' % DISTRO_CODENAME if 'DISTRO_CODENAME' in d else ''}"
+VERSION = "UEIPAC-SEC 2025.2-scarthgap"
+VERSION_ID = "2025.2-scarthgap"
+VERSION_CODENAME = "${DISTRO_CODENAME}"
+PRETTY_NAME = "UEI PetaLinux UEIPAC-SEC 2025.2-scarthgap"
+
+RM_WORK_EXCLUDE += "${PN}"

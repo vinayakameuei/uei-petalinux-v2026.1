@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Delete current password
+passwd -d root
+
+# Force password change on next login
+chage -d 0 root
+
+case "$1" in
+    reboot)
+        reboot
+        ;;
+    shutdown)
+        shutdown -h now
+        ;;
+    *)
+        echo "Usage: $0 {reboot|shutdown}"
+        exit 1
+        ;;
+esac

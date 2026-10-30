@@ -1,0 +1,9 @@
+To install the ueimodbus package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueimodbus-<version>.tgz
+  cd ueimodbus-<version>
+  ./pkgupgrade.sh
+
+

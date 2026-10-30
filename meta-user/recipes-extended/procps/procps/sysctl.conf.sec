@@ -1,0 +1,124 @@
+# This configuration taken from procps v3.3.15
+# Commented out kernel/pid_max=10000 line
+#
+# /etc/sysctl.conf - Configuration file for setting system variables
+# See sysctl.conf (5) for information.
+
+# you can have the CD-ROM close when you use it, and open
+# when you are done.
+#dev.cdrom.autoeject = 1
+#dev.cdrom.autoclose = 1
+
+# protection from the SYN flood attack
+net.ipv4.tcp_syncookies = 1
+
+# see the evil packets in your log files
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.conf.default.log_martians = 1
+
+# makes you vulnerable or not :-)
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.default.accept_source_route = 0
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+
+# needed for routing, including masquerading or NAT
+#net/ipv4/ip_forward=1
+
+# IP forwarding permits the kernel to forward packets from one network 
+# interface to another. The ability to forward packets between two networks
+# is only appropriate for systems acting as routers.
+net.ipv4.ip_forward = 0
+
+# sets the port range used for outgoing connections
+#net.ipv4.ip_local_port_range = 32768    61000
+
+# Broken routers and obsolete firewalls will corrupt the window scaling
+# and ECN. Set these values to 0 to disable window scaling and ECN.
+# This may, rarely, cause some performance loss when running high-speed
+# TCP/IP over huge distances or running TCP/IP over connections with high
+# packet loss and modern routers. This sure beats dropped connections.
+#net.ipv4.tcp_ecn = 0
+
+# Sending ICMP redirects permits the system to instruct other systems to 
+# update their routing information. The ability to send ICMP redirects is 
+# only appropriate for systems acting as routers.
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+
+# Accepting "secure" ICMP redirects (from those gateways listed as default 
+# gateways) has few legitimate uses. It should be disabled unless it is 
+# absolutely required.
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.default.secure_redirects = 0
+
+# Enabling reverse path filtering drops packets with source addresses that
+# should not have been able to be received on the interface they were received
+# on. It should not be used on systems which are routers for complicated networks,
+# but is helpful for end hosts and routers serving small networks.
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.default.rp_filter = 1
+
+# An illicit router advertisement message could result in a man-in-the-middle attack.
+net.ipv6.conf.all.accept_ra = 0
+net.ipv6.conf.default.accept_ra = 0
+net.ipv6.conf.all.accept_redirects = 0
+net.ipv6.conf.default.accept_redirects = 0
+
+# Accepting source-routed packets in the IPv6 protocol has few legitimate uses.
+# It should be disabled unless it is absolutely required.
+net.ipv6.conf.all.accept_source_route = 0
+
+# IP forwarding permits the kernel to forward packets from one network interface to 
+# another. The ability to forward packets between two networks is only appropriate for
+# systems acting as routers.
+net.ipv6.conf.all.forwarding = 0
+
+# Source-routed packets allow the source of the packet to suggest routers forward the
+# packet along a different path than configured on the router, which can be used to 
+# bypass network security measures. It should be disabled unless it is absolutely required.
+net.ipv6.conf.default.accept_source_route = 0
+
+# Swapping too much or not enough? Disks spinning up when you'd
+# rather they didn't? Tweak these.
+#vm.vfs_cache_pressure = 100
+#vm.laptop_mode = 0
+#vm.swappiness = 60
+
+#kernel.printk_ratelimit_burst = 10
+#kernel.printk_ratelimit = 5
+#kernel.panic_on_oops = 0
+
+# Reboot 600 seconds after a panic
+#kernel.panic = 600
+
+# enable SysRq key (note: console security issues)
+#kernel.sysrq = 1
+
+# Change name of core file to start with the command name
+# so you get things like: emacs.core mozilla-bin.core X.core
+#kernel.core_pattern = %e.core
+
+# NIS/YP domain (not always equal to DNS domain)
+#kernel.domainname = example.com
+#kernel.hostname = darkstar
+
+# This limits PID values to 4 digits, which allows tools like ps
+# to save screen space.
+#kernel/pid_max=10000
+
+# Address space layout randomization (ASLR) makes it more difficult 
+# for an attacker to predict the location of attack code they have 
+# introduced into a process's address space during an attempt at exploitation. 
+kernel.randomize_va_space = 2
+
+# Protects against creating or following links under certain conditions
+# See https://www.kernel.org/doc/Documentation/sysctl/fs.txt
+#fs.protected_hardlinks = 1
+#fs.protected_symlinks = 1
+
+# Disabling the ability for any setuid program to write a core file
+# decreases the risk of unauthorized access of such data.
+fs.suid_dumpable = 0

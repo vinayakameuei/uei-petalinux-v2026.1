@@ -1,0 +1,9 @@
+To install the dnxlogicupdate package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf dnxlogicupdate-<version>.tgz
+  cd dnxlogicupdate-<version>
+  ./pkgupgrade.sh
+
+

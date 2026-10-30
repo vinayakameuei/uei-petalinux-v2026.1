@@ -1,0 +1,26 @@
+From 414532e9bc8d3868ab0ce79a30785d4e27720aed Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Mon, 22 Dec 2025 09:46:37 +0000
+Subject: [PATCH] add define
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+
+diff --git a/common/mod_io.c b/common/mod_io.c
+index dc5b6db..9770ff5 100644
+--- a/common/mod_io.c
++++ b/common/mod_io.c
+@@ -187,6 +187,8 @@ extern int hrttimerlistsz;
+ // Temporarily use only - data cannot be stored here
+ volatile char eebuf[DQ_EEMAXSIZE];
+ 
++int ioctl_max10_logic(uint32 ioctl_cmd, uint8 *arg, uint8 *data_out);
++
+ #ifndef __UEIPAC__
+ #if !defined(__POWERPC8347__) && !defined(__ARM_MX6SX__)
+ uint32 DBGDTA[DBGDATALEN];
+-- 
+2.44.1
+

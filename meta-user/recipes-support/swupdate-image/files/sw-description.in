@@ -1,0 +1,46 @@
+software =
+{
+    version = "1.0";
+    description = "UEI recovery update: main rootfs image";
+    hardware-compatibility =
+    [
+        "1.0"
+    ];
+    stable =
+    {
+        main =
+        {
+            images =
+            (
+		 {
+                    filename = "Image";
+		    device = "/dev/mmcblk0p1";
+                    path = "/run/media/boot-mmcblk0p1/Image";
+                    type = "rawfile";
+                },
+		{
+                    filename = "@DTB_FILE@";
+                    device = "/dev/mmcblk0p1";
+                    path = "/run/media/boot-mmcblk0p1/@DTB_FILE@";
+                    type = "rawfile";
+                },
+                {
+                    filename = "@ROOTFS_FILE@";
+                    device = "/dev/mmcblk0p2";
+                    type = "raw";
+                    installed-directly = True;
+                }
+            );
+	   scripts: (
+                {
+                    filename = "preinstall-Image.sh";
+                    type = "preinstall";
+                },
+		{
+                    filename = "postinstall-Image.sh";
+                    type = "postinstall";
+                }
+            );
+        };
+    };
+};

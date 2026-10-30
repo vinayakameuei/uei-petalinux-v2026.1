@@ -1,0 +1,42 @@
+From 51cb91fd89c55ba38a3474276312207807be3fc1 Mon Sep 17 00:00:00 2001
+From: Scott Ikenaga <sikenaga@ueidaq.com>
+Date: Tue, 17 Sep 2024 16:15:33 -0500
+Subject: [PATCH] Set correct aide_bin_path variable for UEI distro
+
+---
+ .../aide/aide_periodic_cron_checking/policy/stig/shared.yml   | 4 ++--
+ products/openembedded/product.yml                             | 4 +++-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/linux_os/guide/system/software/integrity/software-integrity/aide/aide_periodic_cron_checking/policy/stig/shared.yml b/linux_os/guide/system/software/integrity/software-integrity/aide/aide_periodic_cron_checking/policy/stig/shared.yml
+index 2eb6fb7b4f..bb41cd98c3 100644
+--- a/linux_os/guide/system/software/integrity/software-integrity/aide/aide_periodic_cron_checking/policy/stig/shared.yml
++++ b/linux_os/guide/system/software/integrity/software-integrity/aide/aide_periodic_cron_checking/policy/stig/shared.yml
+@@ -21,8 +21,8 @@ checktext: |-
+ 
+     $ grep aide /etc/crontab /var/spool/cron/root
+ 
+-    /etc/crontab: 30 04 * * * root usr/sbin/aide
+-    /var/spool/cron/root: 30 04 * * * root usr/sbin/aide
++    /etc/crontab: 30 04 * * * root {{{ aide_bin_path }}}
++    /var/spool/cron/root: 30 04 * * * root {{{ aide_bin_path }}}
+ 
+     $ sudo more /etc/cron.daily/aide
+ 
+diff --git a/products/openembedded/product.yml b/products/openembedded/product.yml
+index 7d7d07ca9a..42a96a6250 100644
+--- a/products/openembedded/product.yml
++++ b/products/openembedded/product.yml
+@@ -1,5 +1,5 @@
+ product: openembedded
+-full_name: OpenEmbedded 
++full_name: OpenEmbedded
+ type: platform
+ 
+ benchmark_id: OPENEMBEDDED
+@@ -26,3 +26,5 @@ cpes:
+       name: "cpe:/o:openembedded:petalinux:2025.2-scarthgap"
+       title: "OpenEmbedded UEI distribution"
+       check_id: installed_OS_is_uei
++
++aide_bin_path: "/usr/bin/aide"

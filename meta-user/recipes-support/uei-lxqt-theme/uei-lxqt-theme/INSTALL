@@ -1,0 +1,9 @@
+To install the uei-lxqt-theme package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf uei-lxqt-theme-<version>.tgz
+  cd uei-lxqt-theme-<version>
+  ./pkgupgrade.sh
+
+

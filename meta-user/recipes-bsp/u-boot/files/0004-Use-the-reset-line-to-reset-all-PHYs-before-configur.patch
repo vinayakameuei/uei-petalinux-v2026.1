@@ -1,0 +1,77 @@
+From 5033a382faf46986f5cbd5223203a4545ad93a99 Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+Date: Mon, 15 Dec 2025 08:35:59 +0000
+Subject: [PATCH] Use the reset line to reset all PHYs before configuration.
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ drivers/net/zynq_gem.c | 46 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+
+diff --git a/drivers/net/zynq_gem.c b/drivers/net/zynq_gem.c
+index 9a3f7114f19..b80c1590e80 100644
+--- a/drivers/net/zynq_gem.c
++++ b/drivers/net/zynq_gem.c
+@@ -416,6 +416,51 @@ static int zynq_phy_init(struct udevice *dev)
+ 	return phy_config(priv->phydev);
+ }
+ 
++/*
++ * Reset the PHYs.
++ * GPIO pin MIO 77 is connected to the reset line of all the PHYs.
++ * We need to set this pin low for >1us once. For now we are going
++ * to hack this together by writing to the GPIO register space to toggle the pin.
++ *
++ * In the future, we may want to set this up properly using the device tree and driver model etc.
++ */
++
++#define ZYNQ_GPIO_BASE  0xFF0A0000
++#define ZYNQ_GPIO_DATA_2_MSW  0x14
++#define ZYNQ_GPIO_DIRM_2      0x284
++#define ZYNQ_GPIO_OEN_2       0x288
++#define ZYNQ_MIO_77_BANK_PIN  0x02000000
++#define ZYNQ_MIO_77_SET_ZERO  0xFDFF0000
++#define ZYNQ_MIO_77_SET_ONE   0xFDFF0200
++#define ZYNQ_PHY_RESET_DLY_US 10            // It seems to take 2us to get to 0 on the 'scope.
++                                            // 10us should be more than enough time.
++
++static int G_phy_reset_done = 0;
++
++static int zynq_uei_phy_reset(struct mii_dev *bus)
++{
++	u32 reg;
++	if (!G_phy_reset_done) {
++		G_phy_reset_done = 1;
++
++		// set as output
++		reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++		reg |= ZYNQ_MIO_77_BANK_PIN;
++		writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DIRM_2);
++
++		// Enable output.
++		reg = readl(ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++		reg |= ZYNQ_MIO_77_BANK_PIN;
++		writel(reg, ZYNQ_GPIO_BASE + ZYNQ_GPIO_OEN_2);
++
++		// Toggle the line. Make sure it goes low for >1us
++		writel(ZYNQ_MIO_77_SET_ZERO, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++		udelay(ZYNQ_PHY_RESET_DLY_US); // at least 1 us
++		writel(ZYNQ_MIO_77_SET_ONE, ZYNQ_GPIO_BASE + ZYNQ_GPIO_DATA_2_MSW);
++	}
++}
++
++
+ static int zynq_gem_init(struct udevice *dev)
+ {
+ 	int ret;
+@@ -968,6 +1013,7 @@ static int zynq_gem_probe(struct udevice *dev)
+ 		priv->bus = mdio_alloc();
+ 		priv->bus->read = zynq_gem_miiphy_read;
+ 		priv->bus->write = zynq_gem_miiphy_write;
++		priv->bus->reset = zynq_uei_phy_reset;
+ 		priv->bus->priv = priv;
+ 
+ 		ret = mdio_register_seq(priv->bus, dev_seq(dev));
+-- 
+2.44.4
+

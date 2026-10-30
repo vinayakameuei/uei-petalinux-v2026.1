@@ -1,0 +1,197 @@
+From fa6d7164bd764c432e22bc64001b706e18c39b04 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Thu, 1 Oct 2026 05:24:00 +0000
+Subject: [PATCH] refactor and add recovery-image
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+
+diff --git a/usr/bin/ddimage.sh b/usr/bin/ddimage.sh
+index fd64257..f9e3cb1 100644
+--- a/usr/bin/ddimage.sh
++++ b/usr/bin/ddimage.sh
+@@ -18,41 +18,90 @@ elif [ ! -e /dev/${2} ]; then
+     echo "/dev/${2} does not exist"
+     exit
+ else
+-    if [[ ${1} == mmcblk[12]* ]]; then
++    if [[ ${1} == mmcblk[0012]* ]]; then
++        NPARTS=$(grep -c ${1}p[0-9] /proc/partitions)
++    else
++        NPARTS=$(grep -c ${1}[0-9] /proc/partitions)
++    fi
++
++    echo "Source contains ${NPARTS} partition(s)"
++    #
++    # Set source partitions
++    #
++    if [[ ${1} == mmcblk[0012]* ]]; then
+         SRCP1="${1}p1"
+         SRCP2="${1}p2"
++        if [[ ${NPARTS} -ge 3 ]]; then
++            SRCP3="${1}p3"
++        fi
+     else
+-        SRCP1="${1}1"                                
+-        SRCP2="${1}2"                                
++        SRCP1="${1}1"
++        SRCP2="${1}2"
++        if [[ ${NPARTS} -ge 3 ]]; then
++            SRCP3="${1}3"
++        fi
+     fi
+ 
+-    if [[ ${2} == mmcblk[12]* ]]; then                
+-        DESTP1="${2}p1"                                
+-        DESTP2="${2}p2"                                
+-    else                                                               
+-        DESTP1="${2}1"                                                  
+-        DESTP2="${2}2"                                                  
+-    fi                                                                 
++    #
++    # Set destination partitions
++    #
++    if [[ ${2} == mmcblk[0012]* ]]; then
++        DESTP1="${2}p1"
++        DESTP2="${2}p2"
++        if [[ ${NPARTS} -ge 3 ]]; then
++            DESTP3="${2}p3"
++        fi
++    else
++        DESTP1="${2}1"
++        DESTP2="${2}2"
++        if [[ ${NPARTS} -ge 3 ]]; then
++            DESTP3="${2}3"
++        fi
++    fi
+ 
+-    # Systemd automounts partitions. Umount DESTP1 and DESTP2
+-    systemd-umount /dev/${DESTP1}
+-    systemd-umount /dev/${DESTP2}                                                
++    #
++    # Unmount all mounted partitions except rootfs
++    #
++    for N in ${1} ${2}
++    do
++        findroot=($(findmnt -n -o SOURCE /))
++        chkmnts=($(findmnt -n -o SOURCE | grep /dev/${N}))
++        for element in "${chkmnts[@]}"
++        do
++            if [[ "${element}" == "${findroot}" ]]; then
++                echo "${element} is RFS, do not umount!"
++            else
++                umount "${element}"
++            fi
++        done
++    done
+ 
++    #
++    # Begin duplication
++    #
+     echo "Duplicate image from /dev/${1} to /dev/${2}"
+-    #echo "${SRCP1}  ${SRCP2}  ${DESTP1}  ${DESTP2}"
+-
+     HEADER=4096
+-    SRC1=$(</proc/partitions awk -v var="${SRCP1}" '$4 == var {print $3}')
+-    SRC2=$(</proc/partitions awk -v var="${SRCP2}" '$4 == var {print $3}')
++    SRC1=$(awk -v var="${SRCP1}" '$4 == var {print $3}' /proc/partitions)
++    SRC2=$(awk -v var="${SRCP2}" '$4 == var {print $3}' /proc/partitions)
++
++    SRC3=0
+ 
+-    #echo "SRC1 = ${SRC1}"
+-    #echo "SRC2 = ${SRC2}"
++    if [[ ${NPARTS} -ge 3 ]]; then
++        SRC3=$(awk -v var="${SRCP3}" '$4 == var {print $3}' /proc/partitions)
++    fi
+ 
+-    let "SRC = ${HEADER} + ${SRC1} + ${SRC2}"
++    echo "SRC1=${SRC1}"
++    echo "SRC2=${SRC2}"
++    echo "SRC3=${SRC3}"
++
++    let "SRC = ${HEADER} + ${SRC1} + ${SRC2} + ${SRC3}"
+     let "SRCTOTAL = ${SRC}/4"
+-    #echo "SRCTOTAL = ${SRCTOTAL}"
++
++    echo "SRC=${SRC}"
++    echo "SRCTOTAL=${SRCTOTAL}"
+ 
+     ANS="N"
++
+     echo
+     echo    "*****************************************************************"
+     echo    "All data on /dev/${2} will be lost !!!"
+@@ -60,17 +109,58 @@ else
+     read ANS
+     if [[ ${ANS} != [yY]* ]]; then 
+         echo "Exiting..."
+-        exit
++        exit 0
+     fi
+ 
+     echo
+-    # Wipe SRC device
++
++    #
++    # Flush outstanding writes
++    #
++    echo "Syncing filesystems..."
++    sync
++
++    #
++    # Wipe destination
++    #
+     dd if=/dev/zero of=/dev/${2} bs=1k count=2048
++    sync
++
++    #
++    # Copy image
++    #
+     dd if=/dev/${1} of=/dev/${2} bs=4k count=${SRCTOTAL} conv=fsync status=progress
++
++    sync
++
++    #
++    # Re-read partition table
++    #
++    partprobe /dev/${2} 2>/dev/null || true
+     sleep 5
+- 
+-    # Clean newly created rootfs partition
+-    systemd-umount /dev/${DESTP2}
+-    sleep 3
+-    fsck.ext4 -yvf /dev/${DESTP2}
+-fi
+\ No newline at end of file
++
++    #
++    # Check FAT boot partition
++    #
++    if command -v fsck.vfat >/dev/null 2>&1; then
++        fsck.vfat -av /dev/${DESTP1}
++    elif command -v fsck.fat >/dev/null 2>&1; then
++        fsck.fat -av /dev/${DESTP1}
++    elif command -v dosfsck >/dev/null 2>&1; then
++        dosfsck -av /dev/${DESTP1}
++    else
++        echo "WARNING: No FAT fsck utility installed"
++    fi
++    #
++    # Check ext4 partitions
++    #
++    for P in ${DESTP2} ${DESTP3}
++    do
++        if [ -n "${P}" ] && [ -b "/dev/${P}" ]; then
++            systemd-umount /dev/${P} 2>/dev/null
++            sleep 2
++            fsck.ext4 -yvf /dev/${P}
++        fi
++    done
++    echo "Done..."
++fi
+-- 
+2.44.4
+

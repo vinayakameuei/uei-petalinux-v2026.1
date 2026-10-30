@@ -1,0 +1,12 @@
+diff -Naurp libwebsockets-release-0.6/lib/Makefile.am libwebsockets-release-0.6-new/lib/Makefile.am
+--- libwebsockets-release-0.6/lib/Makefile.am	2012-10-22 06:29:57.000000000 -0500
++++ libwebsockets-release-0.6-new/lib/Makefile.am	2019-10-24 16:17:15.265522121 -0500
+@@ -27,7 +27,7 @@ if MINGW
+ libwebsockets_la_CFLAGS+= -w -I../win32port/win32helpers -I ../win32port/zlib/
+ libwebsockets_la_LDFLAGS+= -lm -luser32 -ladvapi32 -lkernel32 -lgcc
+ else
+-libwebsockets_la_CFLAGS+= -rdynamic -fPIC -Werror
++libwebsockets_la_CFLAGS+= -rdynamic -fPIC
+ libwebsockets_la_LDFLAGS+=  -version-info 0:3
+ endif
+ 

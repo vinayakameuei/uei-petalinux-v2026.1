@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policy target="CONTINUE">
+  <service name="tftp"/>
+  <ingress-zone name="HOST"/>
+  <egress-zone name="ANY"/>
+</policy>

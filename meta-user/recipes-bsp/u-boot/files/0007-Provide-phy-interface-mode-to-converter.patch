@@ -1,0 +1,29 @@
+From 08c42a45df5a8d689736b793cc093115b91eb582 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Thu, 19 Feb 2026 01:56:52 -0500
+Subject: [PATCH] Provide phy interface mode to converter
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ drivers/net/phy/xilinx_gmii2rgmii.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/phy/xilinx_gmii2rgmii.c b/drivers/net/phy/xilinx_gmii2rgmii.c
+index 5ff859ce618..4da8463710f 100644
+--- a/drivers/net/phy/xilinx_gmii2rgmii.c
++++ b/drivers/net/phy/xilinx_gmii2rgmii.c
+@@ -42,7 +42,7 @@ static int xilinxgmiitorgmii_config(struct phy_device *phydev)
+ 		return -EINVAL;
+ 	}
+ 
+-	ext_phydev->interface = ofnode_read_phy_mode(node);
++	ext_phydev->interface = phydev->interface; //PHY_INTERFACE_MODE_RGMII_ID;
+ 	ext_phydev->node = phandle.node;
+ 	phydev->priv = ext_phydev;
+ 
+-- 
+2.25.1
+

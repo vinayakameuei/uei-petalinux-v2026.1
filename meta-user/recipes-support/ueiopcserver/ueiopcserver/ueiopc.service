@@ -1,0 +1,15 @@
+[Unit]
+Description=UEI OPC Server
+After=rc-local.service
+
+[Service]
+Type=simple
+RemainAfterExit=true
+ExecStart=/usr/bin/UeiOpcServer
+ExecStop=/bin/kill -s INT $MAINPID
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

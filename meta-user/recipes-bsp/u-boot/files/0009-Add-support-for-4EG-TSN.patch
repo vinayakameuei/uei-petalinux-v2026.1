@@ -1,0 +1,43 @@
+From 97b4d6db919bae23967afeba4c3b42a28dc7f0cc Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Wed, 4 Mar 2026 09:56:09 -0500
+Subject: [PATCH] Add support for 4EG-TSN
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm/mach-zynqmp/pdna-zynqmp.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-zynqmp/pdna-zynqmp.c b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+index fff5528e596..f432326576a 100644
+--- a/arch/arm/mach-zynqmp/pdna-zynqmp.c
++++ b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+@@ -202,7 +202,21 @@ static void uboot_env_set(void){
+                        }else {
+                                env_set("fdt_file", "system-top-4ev.dtb");
+                        }
+-               }else{
++               }
++               else if(!strcmp(zynq_desc->name, "zu4eg")){
++                       if((is_tsn_available() != -1)) {
++                               //now check license is set correctly
++                               if (license_valid(&pram) && (options & OPTION_TSN)){
++                                       env_set("fdt_file", "system-top-4eg-tsn.dtb");
++                               }else{
++                                       printf("TSN Found but invalid License!\n");
++                                       env_set("fdt_file", "system-top-4eg.dtb");
++                               }
++                       }else {
++                               env_set("fdt_file", "system-top-4eg.dtb");
++                       }
++               }
++               else{
+                        if((is_tsn_available() != -1)) {
+                                //now check license is set correctly
+                                if (license_valid(&pram) && (options & OPTION_TSN)){
+-- 
+2.25.1
+

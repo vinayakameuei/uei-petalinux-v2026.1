@@ -1,0 +1,9 @@
+To install the ueiwebconfig package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueiwebconfig-<version>.tgz
+  cd ueiwebconfig-<version>
+  ./pkgupgrade.sh
+
+

@@ -1,0 +1,15 @@
+[Unit]
+Description=pdnaserver background service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/pdnaserver -s 1 -i lo
+Restart=always
+RestartSec=2
+User=root
+WorkingDirectory=/usr/bin
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+To install the pdnaexplorer package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf pdnaexplorer-<version>.tgz
+  cd pdnaexplorer-<version>
+  ./pkgupgrade.sh
+
+

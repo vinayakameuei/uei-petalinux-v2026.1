@@ -1,0 +1,9 @@
+To install the ueivistas package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueivistas-<version>.tgz
+  cd ueivistas-<version>
+  ./pkgupgrade.sh
+
+

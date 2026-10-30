@@ -1,0 +1,45 @@
+From 0a52f79ac853e2f5024f6f40c220b93289448db9 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Mon, 10 Nov 2025 09:56:50 +0000
+Subject: [PATCH] Enable reset support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ arch/arm/lib/reset.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/lib/reset.c b/arch/arm/lib/reset.c
+index c9796a4435c..ca231cfda92 100644
+--- a/arch/arm/lib/reset.c
++++ b/arch/arm/lib/reset.c
+@@ -32,14 +32,22 @@ __weak void reset_misc(void)
+ 
+ int do_reset(struct cmd_tbl *cmdtp, int flag, int argc, char *const argv[])
+ {
+-	puts ("resetting ...\n");
++	udelay (50000);
++       //set 10ms interval for the watchdog
++       *(u32*)0xa00D2024 = 0x5;
++
++       //Reset CPU and all layers
++       *(u32*)0xa00D2000 = 0x8000;
++	/*Reset Zynq and all layers using reset line on the PowerDNA bus*/
++	puts ("Resetting ...\n");
+ 	flush();
+ 
+ 	disable_interrupts();
+ 
+ 	reset_misc();
+-	reset_cpu();
++	reset_cpu();
+ 
++	puts ("Reset Complete.\n");
+ 	/*NOTREACHED*/
+ 	return 0;
+ }
+-- 
+2.44.1
+

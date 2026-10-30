@@ -1,0 +1,9 @@
+To install the ueidaqpython package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueidaqpython-<version>.tgz
+  cd ueidaqpython-<version>
+  ./pkgupgrade.sh
+
+
