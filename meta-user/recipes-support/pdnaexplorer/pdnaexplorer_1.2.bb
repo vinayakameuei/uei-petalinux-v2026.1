@@ -15,7 +15,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 #inherit java-library
 
-SVN_DEV = "svn://subversion2.ametek.com/Software"
+SVN_DEV = "svn://manor-svn01.ametek.com/Software"
 
 SVN_BASE_POWERDNA = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', \
     '${SVN_DEV}/PowerDNA', d)}"

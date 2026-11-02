@@ -10,7 +10,7 @@ RDEPENDS:${PN} = "bash"
 SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.2+svn${SRCPV}"
 
-SVN_DEV = "svn://subversion2.ametek.com/Software/PowerDNA/3.3.x"
+SVN_DEV = "svn://manor-svn01.ametek.com/Software/PowerDNA/3.3.x"
 
 SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${SVN_DEV}', d)}"
 

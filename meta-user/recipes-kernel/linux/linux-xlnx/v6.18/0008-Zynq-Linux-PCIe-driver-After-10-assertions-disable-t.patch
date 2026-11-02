@@ -1,0 +1,47 @@
+From 96e63964ea1407cdd60d15210b4f52367efd4160 Mon Sep 17 00:00:00 2001
+From: "UEI 6.18 port" <vinayak.kulkarni@ametek.com>
+Date: Thu, 29 Oct 2026 17:14:42 +0530
+Subject: [PATCH] Zynq Linux PCIe driver: After 10 assertions, disable the 
+ MSGF_MISC_SR_FATAL_DEV interrupt.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ drivers/pci/controller/pcie-xilinx-nwl.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pci/controller/pcie-xilinx-nwl.c b/drivers/pci/controller/pcie-xilinx-nwl.c
+index 6571d191d350..b45ec5f53528 100644
+--- a/drivers/pci/controller/pcie-xilinx-nwl.c
++++ b/drivers/pci/controller/pcie-xilinx-nwl.c
+@@ -254,6 +254,8 @@ static struct pci_ops nwl_pcie_ops = {
+ 	.write = pci_generic_config_write,
+ };
+ 
++#define PCIE_NVME_MSIC_LIMIT 10
++static int g_msic_irqcnt = PCIE_NVME_MSIC_LIMIT;
+ static irqreturn_t nwl_pcie_misc_handler(int irq, void *data)
+ {
+ 	struct nwl_pcie *pcie = data;
+@@ -296,8 +298,18 @@ static irqreturn_t nwl_pcie_misc_handler(int irq, void *data)
+ 	if (misc_stat & MSGF_MISC_SR_NON_FATAL_DEV)
+ 		dev_err_ratelimited(dev, "Non-Fatal Error Detected\n");
+ 
+-	if (misc_stat & MSGF_MISC_SR_FATAL_DEV)
++	if (misc_stat & MSGF_MISC_SR_FATAL_DEV) {
+ 		dev_err_ratelimited(dev, "Fatal Error Detected\n");
++		if (g_msic_irqcnt <= 0) {
++			u32 reg;
++			dev_err(dev, "Disabling \"MSGF_MISC_SR_FATAL_DEV\" interrupt forever\n");
++			reg = nwl_bridge_readl(pcie, MSGF_MISC_MASK);
++			reg &= ~MSGF_MISC_SR_FATAL_DEV;
++			nwl_bridge_writel(pcie, reg, MSGF_MISC_MASK);
++	  } 	else {
++			g_msic_irqcnt--;
++		}
++	}
+ 
+ 	if (misc_stat & MSGF_MISC_SR_LINK_AUTO_BWIDTH)
+ 		dev_info(dev, "Link Autonomous Bandwidth Management Status bit set\n");

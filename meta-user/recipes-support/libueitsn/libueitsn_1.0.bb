@@ -12,7 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.0+svn${SRCPV}"
 
-SVN_BASE = "svn://subversion2.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
+SVN_BASE = "svn://manor-svn01.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
 
 SVN_MOD_NAME = "UeiTsnLib"
 

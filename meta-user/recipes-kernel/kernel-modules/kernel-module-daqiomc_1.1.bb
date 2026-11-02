@@ -21,6 +21,7 @@ SRC_URI = " \
     file://0001-Add-ccflags-to-remove-mgeneral-regs-only.patch \
     file://0002-add-define.patch \
     file://0003-Search-axi_epc-by-compatible-name.patch \
+    file://0004-Port-to-Linux-6.18.patch \
 "
 
 S = "${WORKDIR}/DAQ_IOMC"

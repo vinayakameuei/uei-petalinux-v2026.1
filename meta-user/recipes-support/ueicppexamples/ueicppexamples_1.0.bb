@@ -12,7 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.0+svn${SRCPV}"
 
-SVN_DEV = "svn://subversion2.ametek.com/Software"
+SVN_DEV = "svn://manor-svn01.ametek.com/Software"
 
 SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', '${SVN_DEV}', d)}"
 

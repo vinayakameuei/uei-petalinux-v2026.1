@@ -1,23 +1,25 @@
-PREFERRED_VERSION_linux-xlnx = "6.6.40+git"
+PREFERRED_VERSION_linux-xlnx = "6.18.40+git+v2026.1"
+PREFERRED_VERSION_u-boot-xlnx = "1:2025.01-xilinx-v2025.1+git"
+
 PREFERRED_VERSION_scap-security-guide = "0.1.69"
 
 UBOOT_MACHINE = "ueizynq_defconfig"
 
 UEI_BUILD_TYPE="devel"
-UEI_SVN="svn://subversion2.ametek.com/Software/PowerDNA/3.3.x"
+UEI_SVN="svn://manor-svn01.ametek.com/Software/PowerDNA/3.3.x"
 
 SERIAL_CONSOLES = "57600;ttyPS0"
 
 MACHINEOVERRIDES .= ":zu_family"
 
-# DTB's required for WIC image
-DTBS = " \
+# WIC-only list; DTBS is also an internal kernel-fitimage shell variable.
+UEI_WIC_DTBS = " \
    system-top-4ev.dtb \
    system-top-4eg.dtb \
    system-top-9eg-tsn.dtb \
    "
 
-IMAGE_BOOT_FILES:append:zu_family = " Image ${DTBS}"
+IMAGE_BOOT_FILES:append:zu_family = " Image ${UEI_WIC_DTBS}"
 
 IMAGE_FSTYPES += "tar.gz cpio.gz.u-boot jffs2 wic.bmap wic.bz2"
 

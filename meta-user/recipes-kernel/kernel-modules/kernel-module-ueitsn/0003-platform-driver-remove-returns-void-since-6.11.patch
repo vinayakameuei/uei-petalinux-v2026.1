@@ -1,0 +1,35 @@
+Subject: [PATCH] platform_driver .remove returns void since Linux 6.11
+
+Upstream-Status: Inappropriate [UEI specific]
+
+--- a/uei_tsn_dev.c
++++ b/uei_tsn_dev.c
+@@ -27,6 +27,7 @@
+ #include <linux/of_address.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ 
+ #include "uei_tsn.h"
+ #include "uei_tsn_status.h"
+@@ -236,14 +237,20 @@
+     return 0;
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0)
++static void uei_tsn_remove(struct platform_device *pdev)
++#else
+ static int uei_tsn_remove(struct platform_device *pdev)
++#endif
+ {
+     uei_tsn_exit();
+     if(_baseClkAddr != NULL)
+     {
+         iounmap(_baseClkAddr);
+     }
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
+     return 0;
++#endif
+ }
+ 
+ 

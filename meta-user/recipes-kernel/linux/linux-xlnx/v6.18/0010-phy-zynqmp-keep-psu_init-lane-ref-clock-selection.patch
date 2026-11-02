@@ -1,0 +1,47 @@
+From be37adeec9737540237176d289ef485e4603c111 Mon Sep 17 00:00:00 2001
+From: "UEI 6.18 port" <vinayak.kulkarni@ametek.com>
+Date: Mon, 2 Nov 2026 10:46:19 +0530
+Subject: [PATCH] phy: zynqmp: keep psu_init lane ref clock selection (6.6
+ behaviour)
+
+Linux 6.6 left L0_Ln_REF_CLK_SEL untouched when a lane used its own
+reference clock. Commit 687d6bccb282 ("phy: zynqmp: Enable reference
+clock correctly") now forces the local clock mux in that case.
+
+On UEI ZynqMP boards psu_init routes the 27 MHz DP reference clock from
+refclk pin 2 to lane 3 (L0_L3_REF_CLK_SEL = 0x04). Forcing the local mux
+feeds the DP PLL the wrong reference and DisplayPort link training fails
+("failed to train the DP link"). Restore the 6.6 behaviour.
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ drivers/phy/xilinx/phy-zynqmp.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/phy/xilinx/phy-zynqmp.c b/drivers/phy/xilinx/phy-zynqmp.c
+index 087fe402e4e2..5b422275053f 100644
+--- a/drivers/phy/xilinx/phy-zynqmp.c
++++ b/drivers/phy/xilinx/phy-zynqmp.c
+@@ -435,11 +435,14 @@ static int xpsgtr_configure_pll(struct xpsgtr_phy *gtr_phy)
+ 	xpsgtr_clr_set(gtr_phy->dev, PLL_REF_SEL(gtr_phy->lane),
+ 		       PLL_FREQ_MASK, ssc->pll_ref_clk);
+ 
+-	/* Enable lane clock sharing, if required */
+-	if (gtr_phy->refclk == gtr_phy->lane)
+-		xpsgtr_clr_set(gtr_phy->dev, L0_Ln_REF_CLK_SEL(gtr_phy->lane),
+-			       L0_REF_CLK_SEL_MASK, L0_REF_CLK_LCL_SEL);
+-	else
++	/*
++	 * Enable lane clock sharing, if required. When the lane uses its own
++	 * reference clock, keep the selection programmed by psu_init (FSBL),
++	 * as Linux 6.6 did. Boards may route a reference clock pin to another
++	 * lane in hardware (e.g. UEI: refclk pin 2 -> lane 3 for DP), and
++	 * forcing the local mux breaks the PLL reference.
++	 */
++	if (gtr_phy->refclk != gtr_phy->lane)
+ 		xpsgtr_clr_set(gtr_phy->dev, L0_Ln_REF_CLK_SEL(gtr_phy->lane),
+ 			       L0_REF_CLK_SEL_MASK, 1 << gtr_phy->refclk);
+ 
+-- 
+2.34.1
+

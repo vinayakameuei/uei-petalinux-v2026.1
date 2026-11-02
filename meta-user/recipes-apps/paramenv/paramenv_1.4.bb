@@ -7,7 +7,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 RM_WORK_EXCLUDE += "${PN}"
 
-SVN_BASE = "svn://subversion2.ametek.com/Software/PowerDNA/Yocto/Utilities"
+SVN_BASE = "svn://manor-svn01.ametek.com/Software/PowerDNA/Yocto/Utilities"
 #SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
 
 SVN_MOD_NAME = "${PN}"

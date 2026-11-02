@@ -62,6 +62,33 @@
         status = "okay";
         phy-names = "dp-phy0";
         phys = <&psgtr 0x3 PHY_TYPE_DP 0x00 3>;
+
+        /* The 6.18 driver requires the DP output port (port@5) to be linked to a connector */
+        ports {
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                port@5 {
+                        reg = <5>;
+                        dpsub_dp_out: endpoint {
+                                remote-endpoint = <&dpcon_in>;
+                        };
+                };
+        };
+};
+
+/ {
+        dpcon {
+                compatible = "dp-connector";
+                label = "DP";
+                type = "full-size";
+
+                port {
+                        dpcon_in: endpoint {
+                                remote-endpoint = <&dpsub_dp_out>;
+                        };
+                };
+        };
 };
 
 &axi_epc_0{

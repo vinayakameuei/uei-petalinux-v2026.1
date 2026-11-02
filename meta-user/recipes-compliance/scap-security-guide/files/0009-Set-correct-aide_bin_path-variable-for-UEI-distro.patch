@@ -35,7 +35,7 @@ index 7d7d07ca9a..42a96a6250 100644
  
  benchmark_id: OPENEMBEDDED
 @@ -26,3 +26,5 @@ cpes:
-       name: "cpe:/o:openembedded:petalinux:2025.2-scarthgap"
+       name: "cpe:/o:openembedded:petalinux:2026.1-scarthgap"
        title: "OpenEmbedded UEI distribution"
        check_id: installed_OS_is_uei
 +

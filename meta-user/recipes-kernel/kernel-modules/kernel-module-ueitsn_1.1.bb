@@ -12,7 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 inherit module
 
-SVN_BASE = "svn://subversion2.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
+SVN_BASE = "svn://manor-svn01.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
 
 SRC_URI = " \
     ${SVN_BASE};module=kernelDriver;protocol=svn \
@@ -20,6 +20,7 @@ SRC_URI = " \
     file://pkgupgrade.sh \
     file://0001-Fix-compilation-error.patch \
     file://0002-update-print-and-add-pl_bus-and-compatible-string.patch \
+    file://0003-platform-driver-remove-returns-void-since-6.11.patch \
 "
 
 S = "${WORKDIR}/kernelDriver"

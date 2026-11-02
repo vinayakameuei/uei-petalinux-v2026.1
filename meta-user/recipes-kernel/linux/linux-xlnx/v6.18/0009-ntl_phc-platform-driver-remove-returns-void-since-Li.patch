@@ -1,0 +1,32 @@
+From 8c1b5f02345375c3d25267f7bb2d526ac8cb7efc Mon Sep 17 00:00:00 2001
+From: "UEI 6.18 port" <vinayak.kulkarni@ametek.com>
+Date: Thu, 29 Oct 2026 17:14:42 +0530
+Subject: [PATCH] ntl_phc: platform driver remove returns void since Linux 6.11
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ drivers/staging/ntl/ntl_phc/ntl_phc.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/staging/ntl/ntl_phc/ntl_phc.c b/drivers/staging/ntl/ntl_phc/ntl_phc.c
+index 097f0206afeb..9d4bf930d24f 100644
+--- a/drivers/staging/ntl/ntl_phc/ntl_phc.c
++++ b/drivers/staging/ntl/ntl_phc/ntl_phc.c
+@@ -605,7 +605,7 @@ err_phc_alloc_failed:
+ /*****************************************************************************/
+ /* Driver remove                                                             */
+ /*****************************************************************************/
+-static int ntl_phc_remove(struct platform_device *pdev)
++static void ntl_phc_remove(struct platform_device *pdev)
+ {
+     struct ntl_phc *phc = dev_get_drvdata(&pdev->dev);
+     uint32_t reg_data;
+@@ -642,8 +642,6 @@ static int ntl_phc_remove(struct platform_device *pdev)
+ 
+     // free structure
+     kfree(phc);
+-
+-    return 0;
+ }
+ 
+ /*****************************************************************************/

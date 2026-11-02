@@ -1,0 +1,55 @@
+Subject: [PATCH] Port to Linux 6.18 (bus match const, timer/hrtimer API renames)
+
+The source already selects the const bus match callback for Linux 6.11
+and supported RHEL kernels. Preserve those checks and make the local
+driver pointer const. Retain the timer API compatibility for older kernels.
+
+Upstream-Status: Inappropriate [UEI specific]
+
+diff -urN a/common/mod_io_func.c b/common/mod_io_func.c
+--- a/common/mod_io_func.c
++++ b/common/mod_io_func.c
+@@ -1383,8 +1383,12 @@
+ 
+     G_axmap_event_timer.per_ktime = ktime_set(sec, nsec);
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++    hrtimer_setup(hrtmr, mod_axmap_timer_cb, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#else
+     hrtimer_init(hrtmr, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+     hrtmr->function = mod_axmap_timer_cb;
++#endif
+     hrtimer_start(hrtmr, G_axmap_event_timer.per_ktime, HRTIMER_MODE_REL);
+ #else
+     // On Windows use hardware timer instead of 1ms high-resolution OS timer
+diff -urN a/common/UEIPAC/pdnabus.c b/common/UEIPAC/pdnabus.c
+--- a/common/UEIPAC/pdnabus.c
++++ b/common/UEIPAC/pdnabus.c
+@@ -162,7 +162,7 @@
+ #endif
+ {
+     struct pdna_device *pcdev = to_pdna_device(dev);
+-    struct pdna_driver *pcdrv = to_pdna_driver(drv);
++    const struct pdna_driver *pcdrv = to_pdna_driver(drv);
+ 
+     DPRINTK("Entering pdna_bus_match for device (%x:%x)\n", pcdev->layer_id, pcdev->serial_number);
+ 
+diff -urN a/common/UEIPAC/pdna_commands.h b/common/UEIPAC/pdna_commands.h
+--- a/common/UEIPAC/pdna_commands.h
++++ b/common/UEIPAC/pdna_commands.h
+@@ -1,6 +1,15 @@
+ #ifndef __PDNA_COMMANDS_H__
+ #define __PDNA_COMMANDS_H__
+ 
++#ifdef __KERNEL__
++#include <linux/version.h>
++
++/* del_timer_sync() was renamed to timer_delete_sync() in Linux 6.15 */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 15, 0)
++#define del_timer_sync timer_delete_sync
++#endif
++#endif
++
+ #define UEIPAC_PKT_SIZE 65535
+ #define DQPKTSIZE UEIPAC_PKT_SIZE
+ 
