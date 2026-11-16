@@ -3,25 +3,21 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
-
-SVN_MOD_NAME = "UeiOpcUa"
-
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.1+svn${SRCPV}"
+PV = "1.1"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC;module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/ueiopcuasdk-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "8651e67cb036b52d50ecf3ba67f0bd939b3c559b83d660133e3fcf5269d104f8"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}/opcua_sdk"
+S = "${WORKDIR}/${PN}-${PV}/opcua_sdk"
 
 inherit cmake
 
@@ -64,5 +60,3 @@ do_create_pkgupgrade() {
 }
 
 BBCLASSEXTEND = "native"
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

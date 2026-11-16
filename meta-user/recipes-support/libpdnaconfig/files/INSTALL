@@ -1,0 +1,9 @@
+To install the libpdnaconfig package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf libpdnaconfig-<version>.tgz
+  cd libpdnaconfig-<version>
+  ./pkgupgrade.sh
+
+

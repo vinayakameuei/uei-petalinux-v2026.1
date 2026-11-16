@@ -3,29 +3,28 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = "daqlib ueipallib"
 
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC/tools;module=libPDNAConfig;protocol=svn \
+    http://10.221.7.142:8080/libpdnaconfig-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "a995883b4b202d98c057447e70e383f6924851923522b53698b063aeb76df26f"
+
 EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
 # Uncomment this line to build debug version
 #DEBUG_BUILD="1"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/libPDNAConfig"
+S = "${WORKDIR}/${PN}-${PV}"
 
 PARALLEL_MAKE = ""
 
@@ -66,5 +65,3 @@ do_create_pkgupgrade() {
 }
 
 BBCLASSEXTEND = "native"
-                    
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

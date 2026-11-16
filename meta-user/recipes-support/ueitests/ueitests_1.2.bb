@@ -3,24 +3,20 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = " daqlib"
 
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
-
-UEI_SRC_MODULE = "tests"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC;module=${UEI_SRC_MODULE};protocol=svn \
+    http://10.221.7.142:8080/ueitests-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "3ac0be76011999dabf63998c1934c46fc262e7f333d7c7133e961335346c59ab"
 
 # Uncomment this line to build debug version
 #DEBUG_BUILD="1"
@@ -29,7 +25,7 @@ SRC_URI = " \
 #  -DWITHOUT_XATTR' 'BUILDDIR=${S}'"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${UEI_SRC_MODULE}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 PARALLEL_MAKE = ""
 
@@ -61,5 +57,3 @@ do_create_pkgupgrade() {
 FILES:${PN} = "\
     /usr/local/tests/TestSDCard \
 "
-                    
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

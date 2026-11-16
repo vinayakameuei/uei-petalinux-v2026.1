@@ -3,25 +3,21 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_DEV = "svn://manor-svn01.ametek.com/Software"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', '${SVN_DEV}', d)}"
+PV = "1.2"
 
 SRC_URI = " \
-	${SVN_BASE}/Common;module=UeiPalLib;protocol=svn \
+    http://10.221.7.142:8080/ueipallib-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "f4da27cbd8e169c9734f4a70a6e66b36f9908b4c2ac0af9f3f5884072cc32a5d"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/UeiPalLib"
+S = "${WORKDIR}/${PN}-${PV}"
 
 EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
@@ -31,7 +27,7 @@ EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=
 PARALLEL_MAKE = ""
 
 do_compile:prepend() {
-    cp ${S}/Makefile.arm ${S}/Makefile
+	cp ${S}/Makefile.arm ${S}/Makefile
 }
 
 do_install() {
@@ -70,5 +66,3 @@ ALLOW_EMPTY_${PN} = "1"
 
 FILES:${PN} += "/usr/local/sbin/UeiPalTest"
 FILES:${PN}-dev += "/usr/local/sbin/UeiPalTest"
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

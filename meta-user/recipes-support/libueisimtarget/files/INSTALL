@@ -1,0 +1,7 @@
+To install the liblibueisimtarget package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf liblibueisimtarget-<version>.tgz
+  cd liblibueisimtarget-<version>
+  ./pkgupgrade.sh

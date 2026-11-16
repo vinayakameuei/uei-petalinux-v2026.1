@@ -24,7 +24,5 @@ KBUILD_DEFCONFIG = ""
 # Must match CONFIG_LOCALVERSION in uei-linux-kernel-defconfig; the recipe forces it into .config
 LINUX_VERSION_EXTENSION = "-uei-zynq"
 
-FIT_CONF_DEFAULT_DTB = "system-top.dtb"
-
 KERNEL_FEATURES:append = " bsp.cfg preempt-rt.cfg fipslinux.cfg uei-dp-connector.cfg"
 RM_WORK_EXCLUDE += "${PN}"

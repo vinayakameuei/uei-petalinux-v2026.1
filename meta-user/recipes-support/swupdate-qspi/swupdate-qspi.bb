@@ -11,7 +11,7 @@ VARIANT:zu9eg-tsn = "35_MIL"
 
 MACHINE_NAME:zu4ev = "4ev"
 MACHINE_NAME:zu4eg = "4eg"
-MACHINE_NAME:zu9eg-tsn = "9eg-tsn"
+MACHINE_NAME:zu9ev-tsn = "9eg-tsn"
 
 # NOTE: Update QSPI file name below required for swu generation
 SRC_URI = "\

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<direct>
+  <rule ipv="ipv4" table="raw" chain="OUTPUT" priority="0">-j CT -p udp -m udp --dport 7850 --helper tftp</rule>
+</direct>

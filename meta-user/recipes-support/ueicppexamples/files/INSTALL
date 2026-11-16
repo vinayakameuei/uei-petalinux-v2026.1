@@ -1,0 +1,9 @@
+To install the ueicppexamples package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueicppexamples-<version>.tgz
+  cd ueicppexamples-<version>
+  ./pkgupgrade.sh
+
+

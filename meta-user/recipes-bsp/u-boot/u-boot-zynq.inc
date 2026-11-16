@@ -11,8 +11,7 @@ SRC_URI:append = " \
     file://0008-On-TSN-toggle-reset-for-PHY-control-logic.patch \
     file://0009-Add-support-for-4EG-TSN.patch \
     file://0010-u-boot-add-support-for-9EG-TSN.patch \
-    file://0011-u-boot-enable-security-option.patch \
-    file://0012-remove-usb-check-for-swupdate.patch \
-    file://0013-set-zu4-partial-identifier-for-4eg.patch \
+    file://0001-u-boot-enable-security-option.patch \
+    file://0001-remove-usb-check-for-swupdate.patch \
     file://ueizynq_defconfig \
 "

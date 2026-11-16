@@ -1,0 +1,9 @@
+To install the ueimds-rootfs package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueimds-rootfs-<version>.tgz
+  cd ueimds-rootfs-<version>
+  ./pkgupgrade.sh
+
+

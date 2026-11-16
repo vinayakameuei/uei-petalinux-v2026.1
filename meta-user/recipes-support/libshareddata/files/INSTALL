@@ -1,0 +1,7 @@
+To install the liblibshareddata package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf liblibshareddata-<version>.tgz
+  cd liblibshareddata-<version>
+  ./pkgupgrade.sh

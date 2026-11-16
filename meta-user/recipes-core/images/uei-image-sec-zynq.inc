@@ -70,6 +70,20 @@ uei_main_enable_root_ssh() {
     fi
 }
 
+ROOTFS_POSTPROCESS_COMMAND += "uei_fix_os_release;"
+
+uei_fix_os_release() {
+    cat > ${IMAGE_ROOTFS}/etc/os-release <<'EOF'
+ID=petalinux
+NAME="UEI PetaLinux"
+VERSION="UEIPAC-SEC 2026.1-scarthgap"
+VERSION_ID=2026.1-scarthgap
+VERSION_CODENAME="scarthgap"
+PRETTY_NAME="UEI PetaLinux UEIPAC-SEC 2026.1-scarthgap"
+CPE_NAME="cpe:/o:openembedded:petalinux:2026.1-scarthgap"
+EOF
+}
+
 EXTRA_USERS_PARAMS:append = " usermod -s /sbin/nologin ftp;"
 EXTRA_USERS_PARAMS:append = " usermod -s /sbin/nologin mosquitto;"
 EXTRA_USERS_PARAMS:append = " usermod -s /sbin/nologin rpcuser;"
@@ -89,21 +103,6 @@ chmod_rootfs() {
 	chmod g-w ${IMAGE_ROOTFS}/home
 	chmod o-rwx ${IMAGE_ROOTFS}/home
 }
-
-ROOTFS_POSTPROCESS_COMMAND += "uei_fix_os_release;"
-
-uei_fix_os_release() {
-    cat > ${IMAGE_ROOTFS}/etc/os-release <<'EOF'
-ID=petalinux
-NAME="UEI PetaLinux"
-VERSION="UEIPAC-SEC 2026.1-scarthgap"
-VERSION_ID=2026.1-scarthgap
-VERSION_CODENAME="scarthgap"
-PRETTY_NAME="UEI PetaLinux UEIPAC-SEC 2026.1-scarthgap"
-CPE_NAME="cpe:/o:openembedded:petalinux:2026.1-scarthgap"
-EOF
-}
-
 
 ROOTFS_POSTPROCESS_COMMAND += "fix_license_manifest_ownership;"
 

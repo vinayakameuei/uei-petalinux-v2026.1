@@ -12,36 +12,34 @@ DEPENDS = "kernel-module-daqiomc openssl"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC/tools;module=${PN};protocol=svn \
+    http://10.221.7.142:8080/pdnaserver-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
     file://0001-Change-pdnaserver-listening-port-to-end0-for-v2025.1.patch \
     file://pdnaserver.service \
 "
+SRC_URI[sha256sum] = "68e011d950909969f2a57a843fb8a13278a307e29fba84367237b105667a9410"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${PN}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 EXTRA_OEMAKE = "'CC=${CC}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
 do_compile:prepend() {
-    cp ${S}/Makefile.arm ${S}/Makefile
+	cp ${S}/Makefile.arm ${S}/Makefile
 }
 
 do_install() {
-    install -m 0766 -d ${D}${bindir}
-    install -m 0755 ${S}/pdnaserver ${D}${bindir}
+	install -m 0766 -d ${D}${bindir}
+	install -m 0744 ${S}/pdnaserver ${D}${bindir}
 }
 
 do_install:append() {
-    install -d ${D}${sysconfdir}/systemd/system
-    install -m 0644 ${WORKDIR}/pdnaserver.service ${D}${sysconfdir}/systemd/system/.
+	install -d ${D}${sysconfdir}/systemd/system
+        install -m 0644 ${WORKDIR}/pdnaserver.service ${D}${sysconfdir}/systemd/system/.
 }
 
 addtask do_create_pkgupgrade
@@ -61,8 +59,6 @@ do_create_pkgupgrade() {
 }
 
 PARALLEL_MAKE = ""
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"
 
 SYSTEMD_SERVICE:${PN} = "pdnaserver.service"
 SYSTEMD_AUTO_ENABLE = "enable"

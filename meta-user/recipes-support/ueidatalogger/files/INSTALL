@@ -1,0 +1,9 @@
+To install the ueidatalogger package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueidatalogger-<version>.tgz
+  cd ueidatalogger-<version>
+  ./pkgupgrade.sh
+
+

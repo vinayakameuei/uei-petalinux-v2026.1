@@ -35,7 +35,6 @@ UEI_PACKAGES = " \
 
 UEI_FRAMEWORK_PACKAGES = " \
        libueidaq libueidaq-dev \
-       ueicppexamples \
 "
 
 UEI_DEV_PACKAGES = " \
@@ -48,7 +47,7 @@ UEI_iDDS_PACKAGES = " \
 "
 
 UEI_OPCUA_PACKAGES = " \
-	ueiopcserver \
+	ueiopcuaserver \
 	ueiopcuasdk \
 "
 

@@ -1,0 +1,9 @@
+To install the kernel-module-daqiomc* driver modules, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf kernel-module-daqiomc-<version>.tgz
+  cd kernel-module-daqiomc-<version>
+  ./pkgupgrade.sh
+
+

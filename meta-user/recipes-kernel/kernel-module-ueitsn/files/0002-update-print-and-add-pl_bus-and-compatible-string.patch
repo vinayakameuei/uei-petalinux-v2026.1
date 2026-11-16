@@ -1,0 +1,55 @@
+From 8b9388dc5f0521c1692a6ab571d644fc5baee969 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Wed, 25 Feb 2026 11:41:37 +0000
+Subject: [PATCH] update print and add pl_bus and compatible string
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ uei_tsn_dev.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/uei_tsn_dev.c b/uei_tsn_dev.c
+index af4ddc6..658516c 100644
+--- a/uei_tsn_dev.c
++++ b/uei_tsn_dev.c
+@@ -186,7 +186,12 @@ static int uei_tsn_probe(struct platform_device *pdev)
+         return -ENXIO;
+     }
+     //get NTL Clock resources too
+-    parent_node = of_find_node_by_name(NULL, "amba_pl");
++    parent_node = of_find_node_by_name(NULL, "pl-bus");
++    if(parent_node == NULL)
++    {
++        printk("uei_tsn_probe: Couldn't find TSN parent_node\n");
++        return -ENXIO;
++    }
+     tsn_clk_node = of_find_node_by_name(parent_node, "ntl_clk_clock");
+     if(tsn_clk_node == NULL)
+     {
+@@ -223,6 +228,11 @@ static int uei_tsn_probe(struct platform_device *pdev)
+ 
+     ret = uei_tsn_init();
+ 
++    if (ret)
++    {
++        printk("uei_tsn_probe: uei_tsn_init failed with %d\n", ret);
++    }
++
+     return 0;
+ }
+ 
+@@ -238,7 +248,7 @@ static int uei_tsn_remove(struct platform_device *pdev)
+ 
+ 
+ static struct of_device_id uei_tsn_dt_ids[] = {
+-    { .compatible = "uei-tsn" }, //todo change this
++    { .compatible = "xlnx,ntl-red-tsn-1.0" },
+     { /* end of table */ }
+ };
+ static struct platform_driver uei_tsn_driver = {
+-- 
+2.44.4
+

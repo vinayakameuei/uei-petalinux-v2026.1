@@ -3,24 +3,20 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = "ueipallib"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.0+svn${SRCPV}"
-
-SVN_DEV = "svn://manor-svn01.ametek.com/Software"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', '${SVN_DEV}', d)}"
+PV = "1.0"
 
 SRC_URI = " \
-    ${SVN_BASE}/Common;module=UeiTestRunner;protocol=svn \
+	http://10.221.7.142:8080/ueitestrunner-${PV}.tar.gz \
 "
+SRC_URI[sha256sum] = "f90ae4d98693f1d0a664244c37f40b584db9fdc1c2f0934b375be6ac06ef7a3d"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/UeiTestRunner"
+S = "${WORKDIR}/${PN}-${PV}"
 
 EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
@@ -30,7 +26,7 @@ EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=
 PARALLEL_MAKE = ""
 
 do_compile:prepend() {
-    cp ${S}/Makefile.arm ${S}/Makefile
+	cp ${S}/Makefile.arm ${S}/Makefile
 }
 
 do_install() {
@@ -56,6 +52,3 @@ FILES:${PN}-dev = "\
 
 
 ALLOW_EMPTY_${PN} = "1"
-
-                    
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

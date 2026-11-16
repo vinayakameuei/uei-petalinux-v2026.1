@@ -3,22 +3,21 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = "ueipallib"
 
 # This tells bitbake where to find the files we're providing on the local filesystem
-FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE};module=DAQLib;protocol=svn \
+    http://10.221.7.142:8080/daqlib-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "99a27efec8be0b40f20ae6fa81a0880efa924efc73b403659f55897dceabdbd2"
+
 UEI_MAJ="5"
 UEI_MIN="1"
 UEI_MIC="1"
@@ -31,7 +30,7 @@ EXTRA_OEMAKE = "'CC=${CC}' 'CXX=${CXX}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=
 EXTRA_OEMAKE:append = " MAJ=${UEI_MAJ} MIN=${UEI_MIN} MIC=${UEI_MIC}"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/DAQLib"
+S = "${WORKDIR}/${PN}-${PV}"
 
 PARALLEL_MAKE = ""
 
@@ -88,5 +87,3 @@ FILES:${PN} = "\
 INSANE_SKIP:${PN} += "dev-so"    
 
 BBCLASSEXTEND = "native"
-                    
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

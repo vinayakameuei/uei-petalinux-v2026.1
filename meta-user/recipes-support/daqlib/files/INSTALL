@@ -1,0 +1,9 @@
+To install the libpowerdna (daqlib) package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf libpowerdna-<version>.tgz
+  cd libpowerdna-<version>
+  ./pkgupgrade.sh
+
+

@@ -1,0 +1,9 @@
+To install the libueidaq package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf libueidaq-<version>.tgz
+  cd libueidaq-<version>
+  ./pkgupgrade.sh
+
+

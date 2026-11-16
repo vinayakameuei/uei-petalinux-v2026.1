@@ -2,26 +2,21 @@ SUMMARY = "UEIPAC Support Rootfs www Files"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 #FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 RDEPENDS:${PN} = "bash"
 
 SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_DEV = "svn://manor-svn01.ametek.com/Software/PowerDNA/3.3.x"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${SVN_DEV}', d)}"
-
-SVN_MOD_NAME = "file_system"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC;module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/ueiroot-wwwfs-${PV}.tar.gz \
 "
+SRC_URI[sha256sum] = "f4b3aef0bd17b5a86e976b3cdc75d5a6f80a9d61e9a06d491a789a4ae2416e05"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 inherit bin_package
 
@@ -30,5 +25,3 @@ do_install() {
     cp -a ${S}/www/* ${D}/www/.
     chown -R root:root ${D}/*
 }
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

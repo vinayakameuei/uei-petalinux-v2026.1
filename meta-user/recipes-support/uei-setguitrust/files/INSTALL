@@ -1,0 +1,9 @@
+To install the uei-setguitrust package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf uei-setguitrust-<version>.tgz
+  cd uei-setguitrust-<version>
+  ./pkgupgrade.sh
+
+

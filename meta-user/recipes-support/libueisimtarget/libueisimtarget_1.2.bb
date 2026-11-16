@@ -3,25 +3,23 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = "daqlib ueipallib libpdnaconfig libshareddata"
 
 # This tells bitbake where to find the files we're providing on the local filesystem
-FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.2+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
+PV = "1.2"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC/UEISim;module=${BPN};protocol=svn \
+    http://10.221.7.142:8080/libueisimtarget-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "9b3a9da58f856f3114e473dc8c450988b9a7c3efa6197c83b5c260d76f9e2a9e"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${PN}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 EXTRA_OEMAKE = "'CC=${CC}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
@@ -76,5 +74,3 @@ do_create_pkgupgrade() {
 }
 
 PARALLEL_MAKE = ""
-                    
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

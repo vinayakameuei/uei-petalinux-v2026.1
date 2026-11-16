@@ -1,0 +1,9 @@
+To install the uei-idds-instr package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf uei-idds-instr-<version>.tgz
+  cd uei-idds-instr-<version>
+  ./pkgupgrade.sh
+
+

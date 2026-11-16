@@ -1,0 +1,42 @@
+From 3ba1fc2085b8b325ee03ed5b08ec79bf8c6f3f3f Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Fri, 9 Jan 2026 02:55:07 -0500
+Subject: [PATCH] Search axi_epc by compatible name
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ common/UEIPAC/pdnabus.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/common/UEIPAC/pdnabus.c b/common/UEIPAC/pdnabus.c
+index 9676cd5..692f199 100644
+--- a/common/UEIPAC/pdnabus.c
++++ b/common/UEIPAC/pdnabus.c
+@@ -286,7 +286,7 @@ static int ueipac_pdnabus_probe(struct device *dev)
+ #else
+     /* Get local bus node */
+ #if defined(__aarch64__)
+-    DPRINTK("Running for Zynqmp\n");
++/*    DPRINTK("Running for Zynqmp\n");
+     dev_name = "axi_epc";
+     localbus_parent_node = of_find_node_by_name(NULL, "amba_pl");
+     if(!localbus_parent_node)
+@@ -294,9 +294,10 @@ static int ueipac_pdnabus_probe(struct device *dev)
+         printk("ueipac_pdnabus_probe: of_find_node_by_name, error localbus_parent_node node not found\n");
+         return -ENXIO;
+     }
++*/    
+ #endif /* __aarch64__ */
+-
+-    localbus_dev_node = of_find_node_by_name(localbus_parent_node, dev_name);
++    dev_name = "xlnx,axi-epc-2.0";
++    localbus_dev_node = of_find_compatible_node(NULL, NULL, dev_name);
+     if(!localbus_dev_node)
+     {
+         printk("ueipac_pdnabus_probe: of_find_node_by_name, error %s node not found\n", dev_name);
+-- 
+2.25.1
+

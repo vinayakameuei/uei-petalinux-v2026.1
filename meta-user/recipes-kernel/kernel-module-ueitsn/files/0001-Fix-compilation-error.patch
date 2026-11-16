@@ -1,0 +1,61 @@
+From f565543de1f62710e81f641dab436a5a27114757 Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+Date: Mon, 15 Dec 2025 06:37:05 +0000
+Subject: [PATCH] Fix compilation error
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ uei_tsn_clk.c | 6 +++---
+ uei_tsn_dev.c | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/uei_tsn_clk.c b/uei_tsn_clk.c
+index b74c9e1..07c29ed 100644
+--- a/uei_tsn_clk.c
++++ b/uei_tsn_clk.c
+@@ -7,11 +7,11 @@
+ //Initialize clock module with current time and other settings
+ void tsn_clk_init(void)
+ {
+-    struct timespec ts;
++    struct timespec64 ts;
+     uint32 val;
+ 
+     //Write initial time
+-    getnstimeofday(&ts);   
++    ktime_get_real_ts64(&ts);
+     val = ts.tv_sec;
+     wr_addr(baseClkAddr+TSN_CLK_TIME_ADJ_VALUE_H_REG, val);
+     val = ts.tv_nsec;
+@@ -40,4 +40,4 @@ void tsn_clk_init(void)
+     //Enable clock
+     wr_addr(baseClkAddr+TSN_CLK_CONTROL_REG, TSN_CLK_CONTROL_ENABLE_BIT);
+ 
+-}
+\ No newline at end of file
++}
+diff --git a/uei_tsn_dev.c b/uei_tsn_dev.c
+index 4c471e9..af4ddc6 100644
+--- a/uei_tsn_dev.c
++++ b/uei_tsn_dev.c
+@@ -43,7 +43,7 @@ void __iomem* _baseAddr;
+ void __iomem* _baseClkAddr;
+ 
+ //need for udev
+-static char *uei_tsn_devnode(struct device *dev, umode_t *mode)
++static char *uei_tsn_devnode(const struct device *dev, umode_t *mode)
+ {
+     if(!mode)
+         return NULL;
+@@ -130,7 +130,7 @@ static int uei_tsn_init(void)
+ 
+     uei_tsn_major_num = register_chrdev(MAJOR_NUM, DRIVER_NAME, &uei_tsn_fops);
+ 
+-    uei_tsn_class = class_create(THIS_MODULE, DRIVER_NAME);
++    uei_tsn_class = class_create(DRIVER_NAME);
+     if(IS_ERR(uei_tsn_class))
+     {
+         printk("uei_tsn_init: Error creating class\n");
+-- 
+2.44.4
+

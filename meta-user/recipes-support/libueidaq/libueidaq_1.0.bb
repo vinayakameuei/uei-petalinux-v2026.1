@@ -3,27 +3,22 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.0+svn${SRCPV}"
-
-SVN_DEV = "svn://manor-svn01.ametek.com/Software"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', '${SVN_DEV}', d)}"
-
-SVN_MOD_NAME = "Framework"
+PV = "1.0"
 
 SRC_URI = " \
-    ${SVN_BASE};module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/libueidaq-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "2c63080e95efc5cab610180eb8bd821d23f345f28806a3b77f51b44cd7d13ee3"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 MAJOR = "1"
 MINOR = "0"
@@ -63,5 +58,3 @@ do_create_pkgupgrade() {
 }
 
 BBCLASSEXTEND = "native"
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

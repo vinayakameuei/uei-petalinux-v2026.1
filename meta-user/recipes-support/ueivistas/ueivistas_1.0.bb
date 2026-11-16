@@ -8,21 +8,17 @@ DEPENDS = "daqlib libpdnaconfig ueipallib"
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.0+svn${SRCPV}"
-
-SVN_BASE = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}/PowerDNA', '${UEI_SVN}', d)}"
-
-SVN_MOD_NAME = "UEIVistas"
+PV = "1.0"
 
 SRC_URI = " \
-    ${SVN_BASE}/UEIPAC;module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/ueivistas-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "7b2ed3e9adadb4e27cfdaa76a2a867efca5da8933d61ee7c2b8697d77f26b5a9"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 EXTRA_OEMAKE = "'CC=${CC}' 'RANLIB=${RANLIB}' 'AR=${AR}' 'BUILDDIR=${S}'"
 
@@ -60,6 +56,4 @@ FILES:${PN} = " \
     /usr/bin/UeiVistas \
 "
 
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"
-
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"

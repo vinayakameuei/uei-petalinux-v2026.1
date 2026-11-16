@@ -3,27 +3,23 @@ SECTION = "base"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb359ec5cf8"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 DEPENDS = "ueipallib"
 
 # This tells bitbake where to find the files we're providing on the local filesystem
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.0+svn${SRCPV}"
-
-SVN_BASE = "svn://manor-svn01.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
-
-SVN_MOD_NAME = "UeiTsnLib"
+PV = "1.0"
 
 SRC_URI = " \
-    ${SVN_BASE};module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/libueitsn-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
+SRC_URI[sha256sum] = "effc831d1b3e17d1bf3014920702a784906ca583e5c712a4f25cc3344fab83e9"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 MAJOR = "1"
 MINOR = "0"
@@ -36,7 +32,7 @@ do_install() {
         cd ${D}${base_libdir}
         ln -sf libUeiTsn.so.${MAJOR}.${MINOR} libUeiTsn.so.${MAJOR}
         ln -sf libUeiTsn.so.${MAJOR} libUeiTsn.so
-        install ${S}/libUeiTsn.a ${D}${base_libdir}        
+        install ${S}/libUeiTsn.a ${D}${base_libdir}
 }
 
 addtask do_create_pkgupgrade
@@ -57,5 +53,3 @@ do_create_pkgupgrade() {
 }
 
 BBCLASSEXTEND = "native"
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

@@ -1,0 +1,35 @@
+From 43733c81665d27e02daf98a0958c21eb7356a217 Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Mon, 17 Nov 2025 06:49:34 +0000
+Subject: [PATCH] Fix MAC address for end1 and end2 based on serial number
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Vinayak <“vinayak.kulkarni@ametek.com”>
+---
+ paramenv.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/paramenv.c b/paramenv.c
+index 1f15a2b..05a3ac6 100644
+--- a/paramenv.c
++++ b/paramenv.c
+@@ -215,12 +215,12 @@ void set_network_params(PARAM* pram){
+     pram->mac[5] = (pram->dq.sernum & 0xff);
+ 
+     pram->mac2[0] = 0x00; pram->mac2[1] = 0x0C; pram->mac2[2] = 0x94;
+-    pram->mac2[3] = 0xF0 + ((pram->dq.sernum & 0xff0000) >> 16);
++    pram->mac2[3] = (0xF0 | (((pram->dq.sernum & 0xff0000) >> 16) & 0x0F));
+     pram->mac2[4] = (pram->dq.sernum & 0xff00) >> 8;
+     pram->mac2[5] = (pram->dq.sernum & 0xff);
+ #if defined(__aarch64__)
+     pram->mac3[0] = 0x00; pram->mac3[1] = 0x0C; pram->mac3[2] = 0x94;
+-    pram->mac3[3] = 0xE0 + ((pram->dq.sernum & 0xff0000) >> 16);
++    pram->mac3[3] = (0xE0 | (((pram->dq.sernum & 0xff0000) >> 16) & 0x0F));
+     pram->mac3[4] = (pram->dq.sernum & 0xff00) >> 8;
+     pram->mac3[5] = (pram->dq.sernum & 0xff);
+ #endif //__aarch64__
+-- 
+2.44.1
+

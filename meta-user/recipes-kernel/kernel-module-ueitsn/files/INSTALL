@@ -1,0 +1,9 @@
+To install the kernel-module-ueitsn driver module, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf kernel-module-ueitsn-<version>.tgz
+  cd kernel-module-ueitsn-<version>
+  ./pkgupgrade.sh
+
+

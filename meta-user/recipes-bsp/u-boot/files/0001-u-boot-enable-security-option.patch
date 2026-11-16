@@ -1,0 +1,29 @@
+From aa9a86e535487e44ba7530df715607324a4bfdb6 Mon Sep 17 00:00:00 2001
+From: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+Date: Wed, 1 Jul 2026 07:34:29 +0000
+Subject: [PATCH] u-boot: enable security option
+
+Signed-off-by: Vinayak Kulkarni <vinayak.kulkarni@ametek.com>
+---
+ arch/arm/mach-zynqmp/pdna-zynqmp.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/arch/arm/mach-zynqmp/pdna-zynqmp.c b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+index eb66a8ecf45..af97ff33474 100644
+--- a/arch/arm/mach-zynqmp/pdna-zynqmp.c
++++ b/arch/arm/mach-zynqmp/pdna-zynqmp.c
+@@ -184,6 +184,11 @@ static void uboot_env_set(void){
+    printf("UEI License: ");
+        if(license_valid(&pram)){
+                printf("%s\n", pram.signature);
++		/* Security Option */
++	       if (options & OPTION_SECURITY)
++		       env_set("secargs", "audit=1 fips=1 lsm=selinux");
++	       else
++		       env_set("secargs", "audit=0");
+        }else{
+                printf("Serial Number mismatch!!!\n");
+        }
+-- 
+2.44.4
+

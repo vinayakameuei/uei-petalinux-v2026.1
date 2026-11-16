@@ -1,0 +1,9 @@
+To install the ueiexamples package update, run the script "pkgupgrade.sh".
+
+For example,
+
+  tar xzvf ueiexamples-<version>.tgz
+  cd ueiexamples-<version>
+  ./pkgupgrade.sh
+
+

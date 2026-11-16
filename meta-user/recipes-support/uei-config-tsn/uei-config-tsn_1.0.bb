@@ -5,21 +5,19 @@ LIC_FILES_CHKSUM = "file://${THISDIR}/../../LICENSE;md5=f7265074b9dd09a8d5473cb3
 
 DEPENDS = "libueitsn"
 
-RM_WORK_EXCLUDE += "${BPN}"
+RM_WORK_EXCLUDE += "${PN}"
 # This tells bitbake where to find the files we're providing on the local filesystem
-FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
-PV = "1.0+svn${SRCPV}"
-SVN_BASE = "svn://manor-svn01.ametek.com/Software/PowerDNA/Zynq/TSN/Software"
-SVN_MOD_NAME = "ConfigTSN"
+PV = "1.0"
 
 SRC_URI = " \
-    ${SVN_BASE};module=${SVN_MOD_NAME};protocol=svn \
+    http://10.221.7.142:8080/uei-config-tsn-${PV}.tar.gz \
 "
+SRC_URI[sha256sum] = "d5fe4d6fc77fc6e5f0c9746d4934f88ad6d011fd4e767e8bcfab54fea2023ee9"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-S = "${WORKDIR}/${SVN_MOD_NAME}"
+S = "${WORKDIR}/${PN}-${PV}"
 
 INSANE_SKIP:${PN} += "ldflags"
 
@@ -37,6 +35,3 @@ FILES:${PN} += "\
     /etc \
     /etc/PTP_Config.xml \
     "
-
-
-do_fetch[lockfiles] += "${TMPDIR}/ueisvnlock.lock"

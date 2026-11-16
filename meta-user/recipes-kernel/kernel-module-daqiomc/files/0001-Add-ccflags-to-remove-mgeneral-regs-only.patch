@@ -1,0 +1,24 @@
+From 375248451393e1fdd6a62ff9e180c1fa9c389d2a Mon Sep 17 00:00:00 2001
+From: Vinayak <“vinayak.kulkarni@ametek.com”>
+Date: Mon, 22 Jun 2026 16:24:55 +0000
+Subject: [PATCH] Add ccflags to remove -mgeneral-regs-only
+
+---
+ Makefile.zynq | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/Makefile.zynq b/Makefile.zynq
+index 6d9acea..1af6bc6 100644
+--- a/Makefile.zynq
++++ b/Makefile.zynq
+@@ -109,6 +109,7 @@ ccflags-y += -D__UEIPAC__ \
+ asflags-y += -I$(PWD)/ \
+ 	     -xassembler-with-cpp
+ 
++ccflags-remove-y = -mgeneral-regs-only
+ 
+ all:
+ 	$(MAKE) V=1 -C $(KERNEL_SRC) M=$(SRC)
+-- 
+2.44.4
+
