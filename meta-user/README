@@ -4,30 +4,74 @@ meta-user layer.
 Please see the corresponding sections below for details.
 
 
+Overview
+========
+
+meta-user is the UEI board support layer for the PetaLinux 2026.1
+(Yocto Scarthgap) UEI Zynq UltraScale+ products. It lives in
+project-spec/meta-user of the PetaLinux project and provides:
+
+  - Machine settings (conf/machine/include/uei-zynq-base.inc) shared by the
+    zu3eg, zu4eg, zu4ev, zu4ev-tsn, zu4eg-tsn and zu9eg-tsn machines.
+  - Linux kernel: linux-xlnx 6.18.40 (PREEMPT_RT) with UEI patches and
+    configuration (recipes-kernel/linux), plus the UEI out-of-tree modules
+    kernel-module-daqiomc and kernel-module-ueitsn.
+  - Bootloader and device-tree customizations (recipes-bsp/u-boot,
+    recipes-bsp/device-tree).
+  - Images (recipes-core/images):
+      uei-image-sec-zynq       main hardened image (SELinux, TPM2, OpenSCAP)
+      uei-image-sdk-zynq       SDK/development image
+      uei-image-recovery-zynq  minimal SWUpdate recovery image
+    and the WIC layout with main and recovery rootfs (wic/rootfs.wks).
+  - UEI applications, libraries and rootfs content (recipes-apps,
+    recipes-support), e.g. paramenv, daqlib, libueidaq, dmapserver and
+    ueiwebconfig. Each one also generates a pkgupgrade-<name>-<version>.tgz
+    for in-field RPM upgrades.
+  - Software update: swupdate, swupdate-qspi, swupdate-image and
+    recipes-core/swupdate-images (offline update bundle).
+  - Security and compliance: SELinux refpolicy, TPM2, OpenSSL/OpenSSH,
+    firewalld, OpenSCAP and scap-security-guide.
+  - Other platform recipes: connectivity (linuxptp, mosquitto, net-snmp),
+    docker, Java, LXQt/SDDM/Qt5 and vsftpd.
+
+Conf files:
+
+  conf/layer.conf          layer registration (priority 7, scarthgap)
+  conf/petalinuxbsp.conf   PetaLinux BSP settings, including the source
+                           mirror (SOURCE_MIRROR_URL) used for offline builds
+  conf/user-rootfsconfig   user rootfs package entries for petalinux-config -c rootfs
+
+In the offline-bsp branch the UEI packages are fetched as checksummed
+tarballs from the source mirror instead of SVN. Recipes disabled for the
+offline build are kept with a "-nouse" suffix. See the top-level README.md
+for build steps.
+
+
 Dependencies
 ============
 
-This layer depends on:
+This layer depends on the layers provided by the PetaLinux 2026.1 project:
 
   URI: git://git.openembedded.org/bitbake
-  branch: master
+  branch: 2.8 (scarthgap)
 
   URI: git://git.openembedded.org/openembedded-core
   layers: meta
-  branch: master
+  branch: scarthgap
 
-  URI: git://git.yoctoproject.org/xxxx
-  layers: xxxx
-  branch: master
+  PetaLinux/Xilinx layers (meta-xilinx-core, meta-xilinx-tools, meta-petalinux)
+  and the other layers used by the recipes in this layer, e.g.
+  meta-openembedded, meta-swupdate, meta-qt5, meta-selinux, meta-security,
+  meta-tpm and meta-virtualization.
 
 
 Patches
 =======
 
-Please submit any patches against the meta-user layer to the
-xxxx mailing list (xxxx@zzzz.org) and cc: the maintainer:
+Please submit any patches against the meta-user layer to the UEI
+engineering team and cc: the maintainer:
 
-Maintainer: XXX YYYYYY <xxx.yyyyyy@zzzzz.com>
+Maintainer: UEI Engineering
 
 
 Table of Contents
@@ -40,25 +84,25 @@ Table of Contents
 I. Adding the meta-user layer to your build
 =================================================
 
---- replace with specific instructions for the meta-user layer ---
+In a PetaLinux project the layer is added automatically once this
+repository is placed in project-spec/meta-user (see the top-level
+README.md).
 
-In order to use this layer, you need to make the build system aware of
-it.
-
-Assuming the meta-user layer exists at the top-level of your
-yocto build tree, you can add it to the build system by adding the
-location of the meta-user layer to bblayers.conf, along with any
-other layers needed. e.g.:
+For a plain Yocto build, add the location of the meta-user layer to
+bblayers.conf, along with any other layers needed. e.g.:
 
   BBLAYERS ?= " \
     /path/to/yocto/meta \
     /path/to/yocto/meta-poky \
     /path/to/yocto/meta-yocto-bsp \
-    /path/to/yocto/meta-meta-user \
+    /path/to/yocto/meta-user \
     "
 
 
 II. Misc
 ========
 
---- replace with specific information about the meta-user layer ---
+Machine specific firmware (FSBL, PMUFW and bitstreams) and hardware
+descriptions (XSA) are not part of this layer. They are in fw/ and hw/ at
+the top of the repository, and scripts/build_qspi.sh uses them to create
+the QSPI boot image.
