@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.0"
 
 SRC_URI = " \
-	http://10.221.7.142:8080/ueitestrunner-${PV}.tar.gz \
+	${UEI_FEED_URL}/ueitestrunner-${PV}.tar.gz \
 "
 SRC_URI[sha256sum] = "f90ae4d98693f1d0a664244c37f40b584db9fdc1c2f0934b375be6ac06ef7a3d"
 

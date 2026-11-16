@@ -15,7 +15,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.2"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/pdnaserver-${PV}.tar.gz \
+    ${UEI_FEED_URL}/pdnaserver-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
     file://0001-Change-pdnaserver-listening-port-to-end0-for-v2025.1.patch \

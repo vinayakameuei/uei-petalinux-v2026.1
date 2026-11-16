@@ -4,6 +4,10 @@ PREFERRED_VERSION_scap-security-guide = "0.1.69"
 
 UBOOT_MACHINE = "ueizynq_defconfig"
 
+# UEI source package feed, served from /srv/yocto/sources (no trailing slash).
+# Change the IP address to the machine running "python3 -m http.server 8080".
+UEI_FEED_URL ?= "http://10.221.7.142:8080"
+
 UEI_BUILD_TYPE="devel"
 UEI_SVN="svn://manor-svn01/Software/PowerDNA/3.3.x"
 

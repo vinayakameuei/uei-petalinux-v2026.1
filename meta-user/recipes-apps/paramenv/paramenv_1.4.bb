@@ -9,7 +9,7 @@ RM_WORK_EXCLUDE += "${PN}"
 PV = "1.4"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/paramenv-${PV}.tar.gz \
+    ${UEI_FEED_URL}/paramenv-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
     file://0001-Init-line-and-len-to-NULL.patch \

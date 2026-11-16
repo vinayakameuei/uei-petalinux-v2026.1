@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.0"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/ueivistas-${PV}.tar.gz \
+    ${UEI_FEED_URL}/ueivistas-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "

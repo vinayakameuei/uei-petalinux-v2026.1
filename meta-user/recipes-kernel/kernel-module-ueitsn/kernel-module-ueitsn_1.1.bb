@@ -12,7 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 inherit module
 
 SRC_URI = " \
-    http://10.221.7.142:8080/kernel-module-ueitsn-${PV}.tar.gz \
+    ${UEI_FEED_URL}/kernel-module-ueitsn-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
     file://0001-Fix-compilation-error.patch \

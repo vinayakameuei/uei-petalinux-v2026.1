@@ -10,7 +10,7 @@ RDEPENDS:${PN} = "bash"
 PV = "1.3"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/ueiroot-rootfs-${PV}.tar.gz \
+    ${UEI_FEED_URL}/ueiroot-rootfs-${PV}.tar.gz \
 "
 SRC_URI[sha256sum] = "6984e514e701bc0a6fc56ac01013caaa4e877ed22b09e3014ababf131a4ce134"
 

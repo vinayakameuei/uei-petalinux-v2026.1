@@ -11,7 +11,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 inherit module
 
-SRC_URI = "http://10.221.7.142:8080/kernel-module-daqiomc-${PV}.tar.gz \
+SRC_URI = "${UEI_FEED_URL}/kernel-module-daqiomc-${PV}.tar.gz \
            file://INSTALL \
            file://pkgupgrade.sh \
            file://0001-Add-ccflags-to-remove-mgeneral-regs-only.patch \

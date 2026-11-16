@@ -12,7 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.2"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/ueimodbus-${PV}.tar.gz \
+    ${UEI_FEED_URL}/ueimodbus-${PV}.tar.gz \
     file://modbusslave.service \
     file://INSTALL \
     file://pkgupgrade.sh \

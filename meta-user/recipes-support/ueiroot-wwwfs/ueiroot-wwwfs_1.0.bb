@@ -11,7 +11,7 @@ SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.2"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/ueiroot-wwwfs-${PV}.tar.gz \
+    ${UEI_FEED_URL}/ueiroot-wwwfs-${PV}.tar.gz \
 "
 SRC_URI[sha256sum] = "f4b3aef0bd17b5a86e976b3cdc75d5a6f80a9d61e9a06d491a789a4ae2416e05"
 

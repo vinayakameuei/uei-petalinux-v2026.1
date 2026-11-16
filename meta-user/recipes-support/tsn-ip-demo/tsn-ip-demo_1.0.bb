@@ -13,7 +13,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.0"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/tsn-ip-demo-${PV}.tar.gz \
+    ${UEI_FEED_URL}/tsn-ip-demo-${PV}.tar.gz \
 "
 SRC_URI[sha256sum] = "838737aa41ae1dbc411d1dbf283d9da2666c89d28ea1c3841475aabe04e7cff8"
 

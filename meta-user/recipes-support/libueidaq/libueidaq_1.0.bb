@@ -11,7 +11,7 @@ SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.0"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/libueidaq-${PV}.tar.gz \
+    ${UEI_FEED_URL}/libueidaq-${PV}.tar.gz \
     file://INSTALL \
     file://pkgupgrade.sh \
 "

@@ -8,7 +8,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 PV = "1.3"
 
 SRC_URI = " \
-    http://10.221.7.142:8080/ueiuser-rootfs-${PV}.tar.gz \
+    ${UEI_FEED_URL}/ueiuser-rootfs-${PV}.tar.gz \
 "
 SRC_URI[sha256sum] = "6a0599293acb9acfc553922f569eb329df35b8c8969f65b9165cafd5d498ebb7"
 
