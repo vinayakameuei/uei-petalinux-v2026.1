@@ -5,8 +5,6 @@ This branch (`offline-bsp`) is for building without access to UEI's internal SVN
 - UEI provides the source packages as a **package feed** (tarballs). The feed is copied to `/srv/yocto/sources` on the build machine and served over HTTP during the first build (see step 6 of Build Steps).
 - `meta-user/conf/machine/include/uei-zynq-base.inc` defines `UEI_FEED_URL` (default `http://10.221.7.142:8080`, UEI's internal mirror). The recipes' `SRC_URI` and `SOURCE_MIRROR_URL` in `petalinuxbsp.conf` (`own-mirrors` + `PREMIRRORS`) all use it. You must change it to the IP address of the machine serving the package feed.
 - The first build fetches the feed packages and stores them in the PetaLinux downloads folder (`uei-zynqmp/build/downloads`). Later builds reuse that folder and no longer need the HTTP server, unless the downloads folder is deleted.
-- A few recipes (e.g. `pdnaexplorer`, `dnxlogicupdate`, `uei-lxqt-theme`, `uei-sddm-theme`, `ueimds-rootfs`, `ueitestsuite`) still fetch from SVN and need access to the SVN server. Their `.bb-nouse` copies are kept alongside for reference.
-- `meta-user/recipes-core/swupdate-images/uei-offline-update.bb` builds an offline SWU bundle (kernel `Image`, DTB and QSPI boot image). See `meta-user/recipes-core/swupdate-images/README.md`.
 
 ### System Requirement:
    1. Ubuntu 20.04 / 22.04 / 24.04 / 24.10

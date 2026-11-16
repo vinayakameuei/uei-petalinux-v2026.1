@@ -23,16 +23,6 @@ project-spec/meta-user of the PetaLinux project and provides:
       uei-image-sdk-zynq       SDK/development image
       uei-image-recovery-zynq  minimal SWUpdate recovery image
     and the WIC layout with main and recovery rootfs (wic/rootfs.wks).
-  - UEI applications, libraries and rootfs content (recipes-apps,
-    recipes-support), e.g. paramenv, daqlib, libueidaq, dmapserver and
-    ueiwebconfig. Each one also generates a pkgupgrade-<name>-<version>.tgz
-    for in-field RPM upgrades.
-  - Software update: swupdate, swupdate-qspi, swupdate-image and
-    recipes-core/swupdate-images (offline update bundle).
-  - Security and compliance: SELinux refpolicy, TPM2, OpenSSL/OpenSSH,
-    firewalld, OpenSCAP and scap-security-guide.
-  - Other platform recipes: connectivity (linuxptp, mosquitto, net-snmp),
-    docker, Java, LXQt/SDDM/Qt5 and vsftpd.
 
 Conf files:
 
