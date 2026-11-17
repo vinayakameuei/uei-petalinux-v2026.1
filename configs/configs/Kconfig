@@ -9,9 +9,9 @@ config SYSTEM_ZYNQMP
         bool "ZYNQMP Configuration"
         help
           ZYNQMP Configuration for the project.
-          All these config options will be in /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/config
+          All these config options will be in /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/config
 
-config SUBSYSTEM_VARIANT_ZYNQMPEG
+config SUBSYSTEM_VARIANT_ZYNQMPEV
         bool
         default y
         help
@@ -21,4 +21,4 @@ config SUBSYSTEM_DISTRO_PETALINUX
         default y
         help
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.main
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.main

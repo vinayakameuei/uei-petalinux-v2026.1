@@ -299,17 +299,18 @@
         status = "okay";
 };
 
-//add in tpm chip - Disable TPM until further development on it
+//TPM chip: Infineon SLB9670 (TPM 2.0) on PS SPI0 (EMIO)
 &spi0{
-        status = "disabled";
+        status = "okay";
         compatible = "cdns,spi-r1p6";
         #address-cells = <1>;
         #size-cells = <0>;
         num-cs = <1>;
 
         tpm_tis@0 {
-                compatible = "tis,tpm2-spi", "infineon,slb9670";
+                compatible = "infineon,slb9670", "tcg,tpm_tis-spi";
                 reg = <0>;
-                spi-max-frequency = <43000000>;
+                /* SLB9670 supports 43 MHz, but PS SPI routed via EMIO is limited to 25 MHz */
+                spi-max-frequency = <25000000>;
         };
 };

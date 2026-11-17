@@ -1,4 +1,4 @@
-device_id: xczu3eg
+device_id: xczu4ev
 hw_design_name: CM_ZINQ_wrapper
 processor:
     psu_cortexa53_0:

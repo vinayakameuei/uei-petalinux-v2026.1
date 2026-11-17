@@ -1,14 +1,14 @@
-2025-12-23 15:45:59,867 - [DEBUG] Using xsct from : /home/kvinayak/uei-zynq-v2025.2/zynqmp/components/xsct/bin/xsct
-2025-12-23 15:45:59,867 - [INFO] Getting Platform info from HW file
-2025-12-23 15:45:59,867 - [DEBUG] Using the soc_family specified by user:zynqmp
-2025-12-23 15:45:59,898 - [DEBUG] Hardware Configuration:
-2025-12-23 15:45:59,898 - [DEBUG] MACHINE     = "None"
-2025-12-23 15:45:59,898 - [DEBUG] DEVICE_ID   = "xczu3eg"
-2025-12-23 15:45:59,898 - [DEBUG] SOC_FAMILY  = "zynqmp"
-2025-12-23 15:45:59,898 - [DEBUG] SOC_VARIANT = "eg"
-2025-12-23 15:45:59,898 - [INFO] Silentconfig project
-2025-12-23 15:45:59,898 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/config conf /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/configs/Kconfig
-2025-12-23 15:45:59,903 - [DEBUG] *
+2026-11-17 07:00:59,491 - [DEBUG] Using xsct from : /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/components/xsct/bin/xsct
+2026-11-17 07:00:59,491 - [INFO] Getting Platform info from HW file
+2026-11-17 07:00:59,491 - [DEBUG] Using the soc_family specified by user:zynqmp
+2026-11-17 07:00:59,506 - [DEBUG] Hardware Configuration:
+2026-11-17 07:00:59,506 - [DEBUG] MACHINE     = "None"
+2026-11-17 07:00:59,506 - [DEBUG] DEVICE_ID   = "xczu4ev"
+2026-11-17 07:00:59,506 - [DEBUG] SOC_FAMILY  = "zynqmp"
+2026-11-17 07:00:59,506 - [DEBUG] SOC_VARIANT = "ev"
+2026-11-17 07:00:59,506 - [INFO] Silentconfig project
+2026-11-17 07:00:59,506 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/config conf /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig
+2026-11-17 07:00:59,514 - [DEBUG] *
 * PetaLinux System Configuration
 *
 ZYNQMP Configuration (SYSTEM_ZYNQMP) [Y/?] y
@@ -155,10 +155,6 @@ TF-A memory settings (SUBSYSTEM_TF-A_MEMORY_SETTINGS) [N/y/?]
 TF-A extra compiler flags (SUBSYSTEM_TF-A_EXTRA_COMPILER_FLAGS) [] 
 TF-A debug (SUBSYSTEM_TF-A_DEBUG) [N/y/?] 
 *
-* optee configuration
-*
-OP-TEE config (SUBSYSTEM_OPTEE) [N/y/?] 
-*
 * u-boot Configuration
 *
 u-boot config target (SUBSYSTEM_UBOOT_CONFIG_TARGET) [xilinx_zynqmp_virt_defconfig] 
@@ -227,7 +223,7 @@ Firmware Version (SUBSYSTEM_FW_VERSION) [1.00]
 *
 * Yocto Settings
 *
-Yocto Machine Name (YOCTO_MACHINE_NAME) [ueizynq-rt] 
+Yocto Machine Name (YOCTO_MACHINE_NAME) [zu4ev] 
 Yocto Include Machine name (YOCTO_INCLUDE_MACHINE_NAME) [] 
 Yocto Additional Overrides (YOCTO_ADD_OVERRIDES) [] 
 *
@@ -265,11 +261,11 @@ Enable Buildtools Extended (YOCTO_BUILDTOOLS_EXTENDED) [N/y/?]
 *
 user layer 0 (USER_LAYER_0) [] 
 #
-# configuration written to /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/config
+# configuration written to /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/config
 #
-2025-12-23 15:45:59,958 - [INFO] Silentconfig rootfs
-2025-12-23 15:45:59,958 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/rootfs_config conf /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/rootfsconfigs/Kconfig
-2025-12-23 15:45:59,969 - [DEBUG] *
+2026-11-17 07:00:59,537 - [INFO] Silentconfig rootfs
+2026-11-17 07:00:59,537 - [DEBUG] Running CMD: yes "" | env KCONFIG_CONFIG=/home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/rootfs_config conf /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/rootfsconfigs/Kconfig
+2026-11-17 07:00:59,545 - [DEBUG] *
 * Configuration
 *
 *
@@ -3734,9 +3730,9 @@ Create new Groups (CREATE_NEW_GROUPS) [aie;]
 Add Users to Groups (ADD_USERS_TO_GROUPS) [petalinux:audio,video,aie,input;] 
 Add Users to Sudo users (ADD_USERS_TO_SUDOERS) [petalinux] 
 #
-# configuration written to /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynq/project-spec/configs/rootfs_config
+# configuration written to /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/rootfs_config
 #
-2025-12-23 15:45:59,975 - [INFO] Generating configuration files
-2025-12-23 15:45:59,979 - [DEBUG] No multilibs enabled.
-2025-12-23 15:45:59,979 - [DEBUG] No multilibs enabled.
-2025-12-23 15:46:00,003 - [DEBUG] Shutting down bitbake
+2026-11-17 07:00:59,550 - [INFO] Generating configuration files
+2026-11-17 07:00:59,550 - [DEBUG] No multilibs enabled.
+2026-11-17 07:00:59,550 - [DEBUG] No multilibs enabled.
+2026-11-17 07:00:59,561 - [DEBUG] Shutting down bitbake

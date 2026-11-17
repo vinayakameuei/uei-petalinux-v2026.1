@@ -79,11 +79,6 @@ config SUBSYSTEM_MEMORY_PSU_DDR_0_U__BOOT_TEXTBASE_OFFSET
 	u-boot load address = bank base address + offset. And same value will
 	pass to TF-A also. Minimum suggested is 1MB.
 
-config SUBSYSTEM_MEMORY_IP_NAME
-	string
-	default psu_ddr_0
-	depends on SUBSYSTEM_MEMORY_PSU_DDR_0_SELECT
-
 config SUBSYSTEM_MEMORY_PSU_DDR_1_BASEADDR
 	hex "System memory base address"
 	default 0x800000000
@@ -119,8 +114,8 @@ config SUBSYSTEM_MEMORY_PSU_DDR_1_U__BOOT_TEXTBASE_OFFSET
 
 config SUBSYSTEM_MEMORY_IP_NAME
 	string
-	default psu_ddr_1
-	depends on SUBSYSTEM_MEMORY_PSU_DDR_1_SELECT
+	default psu_ddr_0 if SUBSYSTEM_MEMORY_PSU_DDR_0_SELECT
+	default psu_ddr_1 if SUBSYSTEM_MEMORY_PSU_DDR_1_SELECT
 
 config SUBSYSTEM_MEMORY_MANUAL_LOWER_BASEADDR
 	hex "Lower memory base address"
@@ -350,21 +345,21 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_AUTO
 	bool "Randomise MAC address"
 	default y if SUBSYSTEM_ARCH_MICROBLAZE
 	default n
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	randomise MAC address for the primary ethernet.
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_PATTERN
 	string "Template for randomised MAC address"
 	default "00:0a:35:00:??:??"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Pattern for generating random MAC addresses - question mark
 	characters will be replaced by random hex digits
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC
 	string "Ethernet MAC address"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default mac address will set from eeprom fru data
 	if you want change with desired value you can change, example: 00:0a:35:00:22:01 or ff:ff:ff:ff:ff:ff
@@ -372,7 +367,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_MAC
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP
 	bool "Obtain IP address automatically"
 	default y
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Set this option if you would like your SUBSYSTEM to use DHCP for
 	obtaining an IP address.
@@ -380,7 +375,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_IP_ADDRESS
 	string "Static IP address"
 	default "192.168.0.10"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	The IP address of your main network interface when static network
 	address assignment is used.
@@ -388,7 +383,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_IP_ADDRESS
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_IP_NETMASK
 	string "Static IP netmask"
 	default "255.255.255.0"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default netmask when static network address assignment is used.
 	In case of systemd please specify netmask value like CIDR notation Eg: 24 instead of 255.255.255.0
@@ -397,7 +392,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_IP_NETMASK
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_IP_GATEWAY
 	string "Static IP gateway"
 	default "192.168.0.1"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_2_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default gateway when static network address assignment is used.
 
@@ -405,21 +400,21 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_AUTO
 	bool "Randomise MAC address"
 	default y if SUBSYSTEM_ARCH_MICROBLAZE
 	default n
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	randomise MAC address for the primary ethernet.
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_PATTERN
 	string "Template for randomised MAC address"
 	default "00:0a:35:00:??:??"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Pattern for generating random MAC addresses - question mark
 	characters will be replaced by random hex digits
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC
 	string "Ethernet MAC address"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default mac address will set from eeprom fru data
 	if you want change with desired value you can change, example: 00:0a:35:00:22:01 or ff:ff:ff:ff:ff:ff
@@ -427,7 +422,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_MAC
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP
 	bool "Obtain IP address automatically"
 	default y
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Set this option if you would like your SUBSYSTEM to use DHCP for
 	obtaining an IP address.
@@ -435,7 +430,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_IP_ADDRESS
 	string "Static IP address"
 	default "192.168.0.10"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	The IP address of your main network interface when static network
 	address assignment is used.
@@ -443,7 +438,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_IP_ADDRESS
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_IP_NETMASK
 	string "Static IP netmask"
 	default "255.255.255.0"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default netmask when static network address assignment is used.
 	In case of systemd please specify netmask value like CIDR notation Eg: 24 instead of 255.255.255.0
@@ -452,7 +447,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_IP_NETMASK
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_IP_GATEWAY
 	string "Static IP gateway"
 	default "192.168.0.1"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_1_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default gateway when static network address assignment is used.
 
@@ -460,21 +455,21 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_AUTO
 	bool "Randomise MAC address"
 	default y if SUBSYSTEM_ARCH_MICROBLAZE
 	default n
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	randomise MAC address for the primary ethernet.
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_PATTERN
 	string "Template for randomised MAC address"
 	default "00:0a:35:00:??:??"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Pattern for generating random MAC addresses - question mark
 	characters will be replaced by random hex digits
 
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC
 	string "Ethernet MAC address"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_AUTO
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC_AUTO && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default mac address will set from eeprom fru data
 	if you want change with desired value you can change, example: 00:0a:35:00:22:01 or ff:ff:ff:ff:ff:ff
@@ -482,7 +477,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_MAC
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP
 	bool "Obtain IP address automatically"
 	default y
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Set this option if you would like your SUBSYSTEM to use DHCP for
 	obtaining an IP address.
@@ -490,7 +485,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_IP_ADDRESS
 	string "Static IP address"
 	default "192.168.0.10"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	The IP address of your main network interface when static network
 	address assignment is used.
@@ -498,7 +493,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_IP_ADDRESS
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_IP_NETMASK
 	string "Static IP netmask"
 	default "255.255.255.0"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default netmask when static network address assignment is used.
 	In case of systemd please specify netmask value like CIDR notation Eg: 24 instead of 255.255.255.0
@@ -507,7 +502,7 @@ config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_IP_NETMASK
 config SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_IP_GATEWAY
 	string "Static IP gateway"
 	default "192.168.0.1"
-	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP
+	depends on SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_SELECT && !SUBSYSTEM_ETHERNET_PSU_ETHERNET_0_USE_DHCP && SUBSYSTEM_DISTRO_PETALINUX
 	help
 	Default gateway when static network address assignment is used.
 
@@ -1022,6 +1017,53 @@ config SUBSYSTEM_PRIMARY_SD_MANUAL_SELECT
 endchoice
 
 endmenu
+
+if !SUBSYSTEM_DISTRO_PETALINUX && SUBSYSTEM_SDT_FLOW
+
+menu "Boot Mode Settings"
+
+choice
+	prompt "Primary Boot Mode"
+	default SUBSYSTEM_BOOTMODE_3
+	help
+	Select the primary boot mode for the processor psu_cortexa53_0.
+	This selection is used to package Boot.BIN and set runqemu
+	boot arguments.
+	For details, see:
+	 Zynq: UG585, "Flash-Devices-Master-Mode-Boot" section
+	 ZynqMP: UG1085, "Boot Modes" section
+	 Versal Gen1: AM011, "Boot Modes and Interfaces" section
+	 Versal Gen2: AM026, "Boot Mode and Interfaces" section
+
+config SUBSYSTEM_BOOTMODE_0
+	bool "0 - JTAG"
+
+config SUBSYSTEM_BOOTMODE_1
+	bool "1 - QSPI (24b)"
+
+config SUBSYSTEM_BOOTMODE_2
+	bool "2 - QSPI (32b)"
+
+config SUBSYSTEM_BOOTMODE_3
+	bool "3 - SD0 (2.0)"
+
+config SUBSYSTEM_BOOTMODE_4
+	bool "4 - NAND"
+
+config SUBSYSTEM_BOOTMODE_5
+	bool "5 - SD1 (2.0)"
+
+config SUBSYSTEM_BOOTMODE_6
+	bool "6 - eMMC (1.8V)"
+
+config SUBSYSTEM_BOOTMODE_14
+	bool "14 - SD1 LS (3.0)"
+
+endchoice
+
+endmenu
+
+endif
 
 endif
 

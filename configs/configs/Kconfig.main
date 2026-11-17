@@ -33,28 +33,28 @@ config SUBSYSTEM_ENDIAN_LITTLE
 
 if SUBSYSTEM_SDT_FLOW
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.bootcompselection
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.bootcompselection
 
 endif
 
 if SUBSYSTEM_DISTRO_PETALINUX
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.linuxcompselection
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.linuxcompselection
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.autoconfigsettings
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.autoconfigsettings
 
 endif
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.syshw
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.syshw
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.dtgsettings
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.dtgsettings
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.bootcompconfigurations
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.bootcompconfigurations
 
 if SUBSYSTEM_DISTRO_PETALINUX
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.imagepkgconfigurations
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.imagepkgconfigurations
 
 endif
 
-source /home/kvinayak/uei-zynq-v2025.2/zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.yoctobuildsettings
+source /home/kvinayak/petalinux-v2026.1/petalinux-zynqmp/uei-zynqmp/project-spec/configs/configs/Kconfig.yoctobuildsettings
