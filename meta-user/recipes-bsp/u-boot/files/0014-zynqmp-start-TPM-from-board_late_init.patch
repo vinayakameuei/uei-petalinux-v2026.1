@@ -1,0 +1,63 @@
+From e73f6edbb8eeed8adee043bd50be463d81b3393b Mon Sep 17 00:00:00 2001
+From: Copilot <223556219+Copilot@users.noreply.github.com>
+Date: Tue, 17 Nov 2026 14:01:48 +0530
+Subject: [PATCH] zynqmp: start TPM from board_late_init
+
+Probe the TPM and issue TPM2_Startup/SelfTest via tpm_auto_start() so
+U-Boot and Linux see an initialised TPM (SLB9670 on PS SPI0).
+---
+ board/xilinx/zynqmp/zynqmp.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+diff --git a/board/xilinx/zynqmp/zynqmp.c b/board/xilinx/zynqmp/zynqmp.c
+index 40ec51f..7202dfc 100644
+--- a/board/xilinx/zynqmp/zynqmp.c
++++ b/board/xilinx/zynqmp/zynqmp.c
+@@ -19,6 +19,7 @@
+ #include <scsi.h>
+ #include <soc.h>
+ #include <spl.h>
++#include <tpm_api.h>
+ #include <malloc.h>
+ #include <memalign.h>
+ #include <wdt.h>
+@@ -518,6 +519,29 @@ static int boot_targets_setup(void)
+ 	return 0;
+ }
+ 
++#if IS_ENABLED(CONFIG_TPM)
++/*
++ * Send TPM2_Startup/SelfTest so the OS finds an initialised TPM. Done in C
++ * rather than via preboot because the environment may be saved in flash.
++ */
++static void uei_tpm_start(void)
++{
++	struct udevice *dev;
++	u32 rc;
++
++	if (uclass_first_device_err(UCLASS_TPM, &dev)) {
++		printf("TPM:   not found\n");
++		return;
++	}
++
++	rc = tpm_auto_start(dev);
++	if (rc)
++		printf("TPM:   auto start failed (rc=0x%x)\n", rc);
++	else
++		printf("TPM:   started\n");
++}
++#endif
++
+ int board_late_init(void)
+ {
+ 	int ret, multiboot;
+@@ -526,6 +550,9 @@ int board_late_init(void)
+ 	usb_ether_init();
+ #endif
+ 	pdna_zynqmp_late_init();
++#if IS_ENABLED(CONFIG_TPM)
++	uei_tpm_start();
++#endif
+ 	multiboot = multi_boot();
+ 	if (multiboot >= 0)
+ 		env_set_hex("multiboot", multiboot);

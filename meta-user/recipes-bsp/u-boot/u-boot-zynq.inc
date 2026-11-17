@@ -13,5 +13,6 @@ SRC_URI:append = " \
     file://0010-u-boot-add-support-for-9EG-TSN.patch \
     file://0001-u-boot-enable-security-option.patch \
     file://0001-remove-usb-check-for-swupdate.patch \
+    file://0014-zynqmp-start-TPM-from-board_late_init.patch \
     file://ueizynq_defconfig \
 "

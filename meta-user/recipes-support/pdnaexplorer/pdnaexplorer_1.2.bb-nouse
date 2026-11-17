@@ -15,7 +15,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 #inherit java-library
 
-SVN_DEV = "svn://subversion2.ametek.com/Software"
+SVN_DEV = "svn://manor-svn01.ametek.com/Software"
 
 SVN_BASE_POWERDNA = "${@bb.utils.contains('UEI_BUILD_TYPE', 'release', '${UEI_SVN}', \
     '${SVN_DEV}/PowerDNA', d)}"
@@ -35,12 +35,12 @@ PV = "1.2+uei_${SRCPV}"
 
 #AJT removed path_spec
 SRC_URI = " \
-	${SVN_URI_POWERDNA};module=PowerDNA_Explorer;protocol=svn;name=pdnaex \
-	${SVN_URI_POWERDNA};module=JavaDaqLib;protocol=svn;name=javadaqlib \
-	${SVN_URI_COMMON};module=UeiUi;protocol=svn;name=ueiui \
-	file://PDNAExplorer \
-	file://bigicon.png \
-	file://smallicon.png \
+    ${SVN_URI_POWERDNA};module=PowerDNA_Explorer;protocol=svn;name=pdnaex \
+    ${SVN_URI_POWERDNA};module=JavaDaqLib;protocol=svn;name=javadaqlib \
+    ${SVN_URI_COMMON};module=UeiUi;protocol=svn;name=ueiui \
+    file://PDNAExplorer \
+    file://bigicon.png \
+    file://smallicon.png \
     file://INSTALL \
     file://pkgupgrade.sh \
 "

@@ -13,7 +13,7 @@ SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.2+svn${SRCPV}"
 
 SRC_URI = " \
-    svn://subversion2.ametek.com/Software/PowerDNA/PDNx%5C%20Logic%5C%20Loader;module=DNxLogicUpdate;protocol=svn \
+    svn://manor-svn01.ametek.com/Software/PowerDNA/PDNx%5C%20Logic%5C%20Loader;module=DNxLogicUpdate;protocol=svn \
     file://INSTALL \
     file://pkgupgrade.sh \
 "

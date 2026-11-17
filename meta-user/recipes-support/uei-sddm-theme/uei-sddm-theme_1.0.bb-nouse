@@ -9,7 +9,7 @@ SRCREV = "${@bb.utils.contains('UEI_BUILD_LOCAL', '1', '', '${AUTOREV}', d)}"
 PV = "1.0+svn${SRCPV}"
 
 SRC_URI += " \
-    svn://subversion2.ametek.com/Software/PowerDNA/Zynq/Yocto/files;module=${BPN};protocol=svn \
+    svn://manor-svn01.ametek.com/Software/PowerDNA/Zynq/Yocto/files;module=${BPN};protocol=svn \
     file://INSTALL \
     file://pkgupgrade.sh \
 "
